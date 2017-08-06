@@ -1,0 +1,7 @@
+{
+  "presets": [
+    ["env", { "modules": false }]
+  ],
+  "plugins": ["transform-runtime", "transform-es2015-destructuring","transform-object-rest-spread"],
+  "comments": false
+}
