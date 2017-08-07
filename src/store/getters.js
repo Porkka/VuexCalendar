@@ -37,8 +37,8 @@ export default {
 		return state.active_entries
 	},
 
-	weeks: (state) => {
-		return state.weeks
+	time_ranges: (state) => {
+		return state.time_ranges
 	},
 
 	entryByGuid: (state) => {

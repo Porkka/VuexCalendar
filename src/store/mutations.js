@@ -9,8 +9,8 @@ export default {
   	state.options = options
   },
 
-  SET_CALENDAR_WEEKS (state, weeks) {
-  	state.weeks = weeks
+  SET_CALENDAR_TIME_RANGES (state, time_ranges) {
+  	state.time_ranges = time_ranges
   },
 
   ACTIVATE_ENTRY (state, entry) {

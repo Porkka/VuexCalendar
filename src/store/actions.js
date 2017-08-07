@@ -8,8 +8,8 @@ export default {
 		commit('SET_CALENDAR_OPTIONS', options)
 	},
 
-	setWeeks: ({ commit }, weeks) => {
-		commit('SET_CALENDAR_WEEKS', weeks)
+	setTimeRanges: ({ commit }, time_ranges) => {
+		commit('SET_CALENDAR_TIME_RANGES', time_ranges)
 	},
 
 	setEntries: ({ commit }, entries) => {

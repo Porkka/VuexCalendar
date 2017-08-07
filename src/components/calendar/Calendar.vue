@@ -1,17 +1,15 @@
 <template>
   <div v-bind:id="id" v-bind:class="classObj">
-    <frame></frame>
+    <frame v-on:prev="prev" v-on:next="next"></frame>
   </div>
 </template>
 
 <script>
 import frame from './Frame'
 import { mapGetters, mapActions } from 'vuex'
-
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
 
-var d = new Date();
 var moment = require('moment');
 
 export default {
@@ -62,6 +60,7 @@ export default {
 
     this.date.locale(this.options.locale);
     this.setSelectedDate(this.date);
+
     if(this.options) {
       this.setOptions(this.options);
     }
@@ -69,13 +68,16 @@ export default {
     let entry_objects = this._createEntryObjects(this.entries);
 
     this.times = this._createTimes();
-    if(this.options.type == 'month') {
+    if(this._isMonth()) {
       let calendar_dates = this._createMonth();
       this.setEntries(entry_objects);
       // calendar_dates = this._setEntriesToDates(calendar_dates, entry_objects);
-      this.setWeeks(calendar_dates);
+      this.setTimeRanges(calendar_dates);
+    } else {
+      let calendar_dates = this._createWeek();
+      this.setEntries(entry_objects);
+      this.setTimeRanges(calendar_dates);
     }
-
   },
 
   mounted()  {
@@ -84,7 +86,7 @@ export default {
   methods: {
 
     ...mapActions([
-      'setSelectedDate', 'setOptions', 'setWeeks', 'setEntries'
+      'setSelectedDate', 'setOptions', 'setTimeRanges', 'setEntries'
     ]),
 
     _createTimes() {
@@ -96,7 +98,7 @@ export default {
       }
 
       // Create day start moment
-      let start = moment(this.options.selected_date).clone();
+      let start = this.date.clone();
       let day_start = this._splitTimeStr(this.options.day_start);
       start.hours(day_start.hours).minutes(day_start.minutes).seconds(day_start.seconds);
       // Create day end moment
@@ -105,7 +107,7 @@ export default {
       end.hours(day_end.hours).minutes(day_end.minutes).seconds(day_end.seconds);
 
       let times = [ ];
-      if(this.type == 'week' || this.type == 'day') {
+      if(!this._isMonth()) {
         do {
           times.push(start.clone());
           start.add(interval.hours, 'h');
@@ -196,18 +198,127 @@ export default {
       return weeks;
     },
 
+    _createWeek() {
 
-/*** HELPERS ***/
-    _isDay() { return this.options.type == 'day' },
-    _isWeek() { return this.options.type == 'week' },
-    _isMonth() { return this.options.type == 'month' },
+      var clone = this.date.clone();
 
+      var date_now = clone.format('l'),
+        stamp_now = clone.format('X'),
+        month_no_now = clone.format('M'),
+        start = clone.isoWeekday(1).clone(),
+        end = clone.endOf('week').clone(),
+        week = { ranges: [ ] };
 
-    _guid() {
-      function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
-      return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+      var day_end = this._splitTimeStr(this.options.day_end);
+      var day_start = this._splitTimeStr(this.options.day_start);
+      var interval = this._splitTimeStr(this.options.hour_interval);
+      var end_day = 7, start_day = 0;
+      while(start_day < end_day) {
+
+        var tmp = start.clone();
+        tmp.add(start_day, 'days');
+        tmp.hours(day_start.hours).minutes(day_start.minutes).seconds(day_start.seconds);
+
+        var tmp_end = tmp.clone();
+        tmp_end = tmp_end.hours(day_end.hours).minutes(day_end.minutes).seconds(day_end.seconds);
+
+        // Add data attributes for easier manipulation
+        var day = {
+          end: tmp_end,
+          start: tmp,
+          entries: [ ],
+          classes: {
+            'pb-past': false, 'pb-today': false, 'pb-future': false,
+            'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
+          },
+          sanitized: tmp.format('L'),
+          timestamp: tmp.format('X'),
+          text: tmp.format('hh:mm'),
+          title: tmp.format('L'),
+          times: [ ]
+        };
+
+        // Prev and next month classes
+        if(tmp.format('M') < month_no_now) { 
+          day.classes['pb-prev-month'] = true;
+        } else if(tmp.format('M') > month_no_now) {
+          day.classes['pb-next-month'] = true;
+        }
+
+        for(let t in this.times) {
+          tmp = tmp.clone();
+          tmp_end = tmp.clone();
+          tmp.hours(this.times[t].hours()).minutes(this.times[t].minutes()).seconds(this.times[t].seconds());
+          tmp_end.add(interval.hours, 'hours').add(interval.minutes, 'minutes').seconds(interval.seconds, 'seconds');
+          // Add data attributes for easier manipulation
+          let time = {
+            start: tmp,
+            end: tmp_end,
+            entries: [ ],
+            classes: {
+              'pb-past': false, 'pb-today': false, 'pb-future': false,
+              'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
+            },
+            sanitized: tmp.format('L, hh:mm'),
+            timestamp: tmp.format('X'),
+            text: tmp.format('hh:mm'),
+            title: tmp.format('L')
+          };
+
+          day.times.push(time);
+        }
+
+        start_day++;
+        week.ranges.push(day);
+      }
+
+      return [ week ];
     },
 
+    prev() {
+  
+      if(this._isMonth()) {
+        this.date.subtract(1, 'months').clone()
+      }
+      this.options.selected_date = this._longFormat(this.date);
+
+      this.times = this._createTimes();
+ 
+      if(this.options.type == 'month') {
+        let calendar_dates = this._createMonth();
+        // calendar_dates = this._setEntriesToDates(calendar_dates, entry_objects);
+        this.setTimes(calendar_dates);
+      }
+
+      this.setSelectedDate(this.date);
+    },
+
+    next() {
+   
+      if(this._isMonth()) {
+        this.date.add(1, 'months').clone()
+      } else if(this._isWeek()) {
+        this.date.add(7, 'days').clone()
+        console.log(this.date);
+      }
+
+      this.options.selected_date = this._longFormat(this.date);
+
+      this.times = this._createTimes();
+ 
+      if(this._isMonth()) {
+        let calendar_dates = this._createMonth();
+        this.setTimeRanges(calendar_dates);
+      } else {
+        let calendar_dates = this._createWeek();
+        this.setTimeRanges(calendar_dates);
+      }
+
+      this.setSelectedDate(this.date);
+    },
+
+
+/*** HELPERS ***/
     /** Starting and ending dates are the dates supplied as parameters **/
     _rangeToDays(a_date, b_date) {
       // var start = moment(a_date);

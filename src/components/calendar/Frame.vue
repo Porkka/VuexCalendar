@@ -1,17 +1,24 @@
 <template>
 	<table class="pb-main-table">
 		<tr class="heading-row day-name-row">
-			<th v-for="header in headers" class="day-title">{{ header.text }}</th>
+			<th class="entry-row" v-if="!_isMonth()"></th>
+			<th v-for="header in headers" class="day-title" v-html="header.text"></th>
 		</tr>
 		<tr class="heading-row">
 			<th colspan="8">
-				<a href="#" class="pb-nav prev" v-html="this.options.prev_nav"></a>
+				<a href="#" class="pb-nav prev" v-html="this.options.prev_nav"
+				@click.stop.prevent="previousView"></a>
 				<span class="pb-title">{{ this.title }}</span>
-				<a href="#" class="pb-nav prev" v-html="this.options.next_nav"></a>
+				<a href="#" class="pb-nav next" v-html="this.options.next_nav"
+				@click.stop.prevent="nextView"></a>
 			</th>
 		</tr>
-		<tr class="entry-row" v-for="(week, k) in weeks">
-      <day v-for="day in week.days" v-bind:day="day" v-bind:key="k"></day>
+		<tr v-if="_isMonth()" class="entry-row" v-for="(range, k) in time_ranges">
+      <day v-for="time in range.times" v-bind:day="time" v-bind:key="k"></day>
+		</tr>
+		<tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
+			<td v-text="time.text"></td>
+			<day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l"></day>
 		</tr>
 	</table>
 </template>
@@ -30,18 +37,41 @@ export default {
 
   computed: {
     ...mapGetters([
-      'weeks', 'date', 'options', 'entries'
+      'time_ranges', 'date', 'options', 'entries'
     ]),
   },
 
-	data() {
-		return {
-			headers: [ ]
-		}
-	},
+  watch: {
+
+  	time_ranges: function() {
+			let clone = this.date.clone();
+	    this.title = this.calendarTitle(clone);
+	    if(this._isMonth()) {
+		    this.headers = this.monthHeader(clone);
+	    } else {
+		    this.headers = this.weekHeader(clone);
+	    }
+  	}
+
+  },
+
+  data: function() {
+  	return {
+  		title: '',
+  		headers: [],
+  	}
+  },
 
 	created() {
-		this._monthHeader(this.date)
+
+		let clone = this.date.clone();
+		if(this._isMonth()) {
+		  this.headers = this.monthHeader(clone);
+		} else {
+		  this.headers = this.weekHeader(clone);
+		}
+
+		this.title = this.calendarTitle(clone);
 
     var all_entries = [ ];
     for(let ent in this.entries) {
@@ -51,23 +81,15 @@ export default {
       }
       all_entries.push(this.entries[ ent ]);
     }
-
 	},
 
 	methods: {
 
-	  _monthHeader(moment) {
+	  monthHeader(moment) {
 		  // Header
 		  moment.locale(this.locale);
 		  var tmp = moment.clone();
-		  var start = tmp.clone();
-		  var end = tmp.clone();
-		  start = start.startOf('month');
-		  end = end.endOf('month');
-
-		  this.title = start.format('MMMM') + ' ' + end.format('YYYY');
-
-		  tmp = moment.clone();
+		  var headers = [ ];
 
 		  var startWeek = tmp.startOf('isoWeek').clone();
 		  var endWeek = tmp.endOf('isoWeek').clone();
@@ -79,7 +101,7 @@ export default {
 				};
 				startWeek.add(1, 'days');
 				// Append to table headers
-				this.headers.push(cell);
+				headers.push(cell);
 		  }
 		  // Last cell
 			var cell = {
@@ -88,8 +110,52 @@ export default {
 			};
 			startWeek.add(1, 'days');
 			// Append to table headers
-			this.headers.push(cell);
+			headers.push(cell);
+
+			return headers;
 	  },
+
+	  weekHeader(moment) {
+		  // Header
+		  moment.locale(this.locale);
+		  var tmp = moment.clone();
+		  var headers = [ ];
+		  var startWeek = tmp.startOf('isoWeek').clone();
+		  var endWeek = tmp.endOf('isoWeek').clone();
+      var range = startWeek.format('L') + ' - ' + endWeek.format('L');
+      while(startWeek.format('d') != endWeek.format('d')) {
+				var cell = {
+					text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format('l')
+				};
+				startWeek.add(1, 'days');
+				// Append to table headers
+				headers.push(cell);
+      }
+
+			return headers;
+	  },
+
+	  calendarTitle(moment) {
+	    if(this._isMonth()) {
+				let start = moment.startOf('month'),
+				end = moment.endOf('month');
+				return start.format('MMMM') + ' ' + end.format('YYYY');
+	    } else {
+			  let startWeek = moment.startOf('isoWeek').clone();
+			  let endWeek = moment.endOf('isoWeek').clone();
+				return startWeek.format('L') + ' - ' + endWeek.format('L');
+	    }
+	  },
+
+
+	  previousView() {
+	  	this.$emit('prev');
+	  },
+
+	  nextView() {
+	  	this.$emit('next');
+	  },
+
 
 	}
 

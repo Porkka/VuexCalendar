@@ -1,4 +1,4 @@
-# calendar
+# VuexCalendar
 
 > A Vue.js project
 

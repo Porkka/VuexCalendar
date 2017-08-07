@@ -21,7 +21,7 @@ export default {
     onEntryMoveConfirm: () => { return confirm('Are you sure you want to change this entry\'s position?'); }
   },
 
-  weeks: [
+  time_ranges: [
 
   ],
 

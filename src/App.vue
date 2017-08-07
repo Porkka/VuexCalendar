@@ -18,15 +18,14 @@ export default {
       entries: [ ],
       options: {
         theme: 'original',
-        locale: 'en',
+        locale: 'fi',
         entry_limit: 3,
         day_start: '08:00',
-        day_end: '23:59',
+        day_end: '23:59:59',
         prev_nav: '&laquo;',
         next_nav: '&raquo;',
-        type: 'month',
-        render_mode: 'normal',
-        selected_date: '2017-07-01 10:00',
+        type: 'week',
+        selected_date: '2017-08-01 10:00',
         breakpoints: {
           767: { type: 'day', entry_limit: 2 }
         },
@@ -46,28 +45,20 @@ export default {
     this.entries = [
        {
         title: '0000',
-        start: '2017-07-18 09:30',
-        end: '2017-07-31 10:00',
+        start: '2017-08-01 09:00',
+        end: '2017-08-01 10:00',
         styles: {
           background: 'red',
         }
        },
-       // {
-       //  title: '0000',
-       //  start: '2017-07-31 00:00',
-       //  end: '2017-08-07 23:59',
-       //  styles: {
-       //    background: 'green',
-       //  }
-       // },
-       {
-        title: '0000',
-        start: '2017-07-23 11:30',
-        end: '2017-07-25 12:30',
-        styles: {
-          background: 'brown',
-        }
-       }
+      // {
+      //   title: '0000',
+      //   start: '2017-07-23 11:30',
+      //   end: '2017-07-25 12:30',
+      //   styles: {
+      //     background: 'brown',
+      //   }
+      //  }
     ];
   },
 

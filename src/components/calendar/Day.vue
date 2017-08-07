@@ -6,7 +6,7 @@
     v-bind:class="day.classes" 
     v-bind:data-sanitized="day.sanitized"
     v-bind:data-timestamp="day.timestamp">
-    {{ day.text }}
+    {{ _isMonth() ? day.text : '' }}
     <entry v-for="(entry, k) in day_entries" 
     v-bind:key="k" 
     v-bind:entry="entry"></entry>
@@ -30,14 +30,18 @@ export default {
   computed: {
     ...mapGetters([
       'moving', 'resizing', 'selecting', 'entries',
-      'weeks', 'date', 'options', 'targetDay', 'dayByTimestamp',
+      'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp',
       'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date'
     ]),
     day_entries: function() {
       let entries = [ ];
+      var day_format = this.day.start.format('X');
       for(let e in this.entries) {
-        let start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
-        if(start == this.day.start.format('X')) {
+        let start = this.entries[ e ].from.clone().format('X');
+        if(this._isMonth()) {
+          start = start.hours(0).minutes(0).seconds(0).format('X');
+        }
+        if(start == day_format) {
           entries.push(this.entries[ e ]);
         }
       }
@@ -143,7 +147,10 @@ export default {
         old_end = entry.origin_to,
         diff = moment.duration(old_end.diff(old_start));
 
-        let start = self.drag_event_on_date.start.clone().hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
+        let start = self.drag_event_on_date.start.clone();
+        if(self._isMonth()) {
+          start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
+        }
         let end = start.clone();
         end.add(diff);
 
@@ -186,10 +193,15 @@ export default {
 
         let tmp = moment_start.clone();
 
-        if(tmp.hours(0).minutes(0).seconds(0).format('X') > moment_end.format('X')) {
-          return;
+        if(self._isMonth()) {
+          if(tmp.hours(0).minutes(0).seconds(0).format('X') > moment_end.format('X')) {
+            return;
+          }
+        } else {
+          if(tmp.format('X') > moment_end.format('X')) {
+            return;
+          }          
         }
-
         if(self.options.type == 'month') {
           moment_end.hours(old_end.hours());
         }

@@ -104,7 +104,7 @@ export default {
           tmp.add(1, 'days');
       };
 
-      if(tmp.format('x') < end.format('x')) {
+      if(tmp.format('x') <= end.format('x')) {
           week = { start: null, end: null };
           week.start = this._longFormat(tmp);
           week.end = this._longFormat(end);
@@ -160,7 +160,6 @@ export default {
       }
 
       return entry;
-
     },
 
 	}
