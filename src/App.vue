@@ -34,7 +34,7 @@ export default {
           en: { day: 'Day', week: 'Week', month: 'Month' },
           fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
         },
-        hour_interval: '00:60:00',
+        hour_interval: '01:00:00',
         onEntryResizeConfirm: () => { return confirm('Are you sure you want to change this entry\'s length?'); },
         onEntryMoveConfirm: () => { return confirm('Are you sure you want to change this entry\'s position?'); }
       }
@@ -45,20 +45,12 @@ export default {
     this.entries = [
        {
         title: '0000',
-        start: '2017-08-01 09:00',
-        end: '2017-08-01 10:00',
+        start: '2017-07-31 09:00',
+        end: '2017-07-31 13:55',
         styles: {
           background: 'red',
         }
        },
-      // {
-      //   title: '0000',
-      //   start: '2017-07-23 11:30',
-      //   end: '2017-07-25 12:30',
-      //   styles: {
-      //     background: 'brown',
-      //   }
-      //  }
     ];
   },
 

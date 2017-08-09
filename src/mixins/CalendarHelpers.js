@@ -5,16 +5,26 @@ export default {
   methods: {
 
     _createEntryObjects(entries) {
-      let entry_objects = [ ], 
-      day_start = this._splitTimeStr(this.options.day_start),
-      day_end = this._splitTimeStr(this.options.day_end);
+      if(this._isMonth()) {
+        var entry_objects = this._createMonthEntryObjects(entries);
+      } else if(this._isWeek()) {
+        var entry_objects = this._createWeekEntryObjects(entries);
+      }
+      
 
+      return entry_objects;
+    },
+
+    _createMonthEntryObjects(entries) {
+      let day_start = this._splitTimeStr(this.options.day_start),
+      day_end = this._splitTimeStr(this.options.day_end),
+      entry_objects = [ ];
       for(let ent in entries) {
 
         let entry = this._initEntryObject(entries[ ent ]);
 
-        let tmp_start = entry.from.clone().hours(0).minutes(0).seconds(0),
-        tmp_end = entry.to.clone().hours(0).minutes(0).seconds(0);
+        let tmp_start = entry.from.clone(),
+        tmp_end = entry.to.clone();
 
         if(tmp_start.isoWeek() != tmp_end.isoWeek()) {
           // Clone so we don't change the existing one...
@@ -41,37 +51,81 @@ export default {
             split.has_resizer = ( i + 1 ) == weeks_count;
 
             let day_diff = Math.abs(split.to.diff(split.from, 'days'));
-            if(this._isMonth()) {
-              day_diff++;
-              let w = (Math.max(day_diff, 1) * 100) - 20;
-              if(day_diff > 1) {
-                split.styles.width = 'calc(' + w + '%' + ' + ' + day_diff + 'px)';
-              } else {
-                split.styles.width = w + '%';
-              }
+            day_diff++;
+            let w = (Math.max(day_diff, 1) * 100) - 20;
+            if(day_diff > 1) {
+              split.styles.width = 'calc(' + w + '%' + ' + ' + day_diff + 'px)';
+            } else {
+              split.styles.width =  w + '%';
             }
             entry_objects.push(split);
           }
         } else {
           entry.has_resizer = true;
-          if(this._isMonth()) {
-            let day_diff = Math.abs(tmp_end.diff(tmp_start, 'days'));
-            day_diff++;
-            let w = (Math.max(day_diff, 1) * 100) - 20;
-            entry.styles.width = w + '%';
-          }
+          let day_diff = Math.abs(tmp_end.diff(tmp_start, 'days')) + 1;
+          entry.styles.width = (Math.max(day_diff, 1) * 100) - 20 + '%';
           entry_objects.push(entry);
         }
       }
-
       return entry_objects;
     },
 
+    _createWeekEntryObjects(entries) {
+      let day_start = this._splitTimeStr(this.options.day_start),
+      day_end = this._splitTimeStr(this.options.day_end),
+      interval = this._splitTimeStr(this.options.hour_interval),
+      length = interval.hours * 3600 + interval.minutes * 60,
+      entry_objects = [ ];
+      for(let ent in entries) {
+
+        let entry = this._initEntryObject(entries[ ent ]),
+        tmp_start = entry.from.clone(),
+        tmp_end = entry.to.clone();
+
+        if(tmp_start.day() != tmp_end.day()) {
+          // Clone so we don't change the existing one...
+          var days = this._rangeToDays(tmp_start, tmp_end),
+          day_count = days.length;
+          var origin_guid = '';
+          for(let i = 0; i < day_count; i++) {
+
+            let split = _.cloneDeep(entry),
+            tmp_start = moment(days[i].start),
+            tmp_end = moment(days[i].end);
+            split.guid = this._guid();
+            if(!i) {
+              origin_guid = split.guid;
+            } else {
+              split.origin_guid = origin_guid;
+            }
+
+            split.start = this._longFormat(tmp_start);
+            split.end = this._longFormat(tmp_end);
+            split.from = moment(split.start);
+            split.to = moment(split.end);
+            split.has_resizer = ( i + 1 ) == day_count;
+
+            let diff = Math.floor(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length);
+            split.styles.height = 'calc(' + (diff * 100 - 15) + '% + ' + diff + 'px)';
+            
+            split.styles.width = 'calc(' + 100 + '% - 30px)';
+
+            entry_objects.push(split);
+          }
+        } else {
+          entry.has_resizer = true;
+          let diff = Math.floor(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length);
+          entry.styles.height = 'calc(' + (diff * 100 - 15) + '% + ' + diff + 'px)';
+          entry.styles.width = 'calc(' + 100 + '% - 30px)';
+          entry_objects.push(entry);
+        }
+      }
+      return entry_objects;
+    },
 
     _isDay() { return this.options.type == 'day' },
     _isWeek() { return this.options.type == 'week' },
     _isMonth() { return this.options.type == 'month' },
-
 
     /** Starting and ending dates are the dates supplied as parameters **/
     _rangeToWeeks(start, end) {
@@ -113,6 +167,38 @@ export default {
       }
       // Add to return value
       return weeks;
+    },
+
+    /** Starting and ending dates are the dates supplied as parameters **/
+    _rangeToDays(start, end) {
+        var days = [ ], tmp = start.clone(),
+        day_start = this._splitTimeStr(this.options.day_start),
+        day_end = this._splitTimeStr(this.options.day_end),
+        start_num = 24 - start.hour() - start.minutes() / 60 - 0.01;
+
+        // Init day variable and add first day to return array
+        var day = { start: null, end: null };
+        day.start = this._longFormat(tmp);
+        tmp.add(start_num, 'hours');
+        day.end = this._longFormat(tmp);
+        days.push(day);
+        while(tmp.day() < end.day()) {
+            var day = { start: null, end: null };
+
+            tmp.add('1', 'days').hours(day_start.hours).minutes(day_start.minutes);
+            // console.log(tmp.format('L, HH:mm'));
+            day.start = this._longFormat(tmp);
+
+            tmp.hours(day_end.hours).minutes(day_end.minutes);
+            if(tmp.format('x') > end.format('x')) { // Whoops! Too much
+              tmp.hours(end.hours()).minutes(end.minutes());
+            }
+            // console.log(tmp.format('L, HH:mm'));
+            day.end = this._longFormat(tmp);
+
+            days.push(day);
+        }
+        return days;
     },
 
     _getOverlappingEntries(entry, entry_objects) {

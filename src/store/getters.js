@@ -67,14 +67,27 @@ export default {
 	dayByTimestamp: (state) => {
 		return function (timestamp) {
 			timestamp = parseInt(timestamp);
-			for(var i in state.weeks) {
-				for(var j in state.weeks[ i ].days) {
-					if(state.weeks[ i ].days[ j ].timestamp == timestamp) {
-						return state.weeks[ i ].days[ j ];
+			for(var i in state.time_ranges) {
+				for(var j in state.time_ranges[ i ].ranges) {
+					if(state.time_ranges[ i ].ranges[ j ].timestamp == timestamp) {
+						return state.time_ranges[ i ].ranges[ j ];
 					}
 				}	
 			}
-		};  
+		};
+	},
+
+	dayTimeByTimestamp: (state) => {
+		return function (timestamp) {
+			timestamp = parseInt(timestamp);
+			for(var i in state.time_ranges[0].ranges) {
+				for(var j in state.time_ranges[ 0 ].ranges[ i ].times) {
+					if(state.time_ranges[ 0 ].ranges[ i ].times[ j ].timestamp == timestamp) {
+						return state.time_ranges[ 0 ].ranges[ i ].times[ j ];
+					}
+				}	
+			}
+		};
 	}
 
 }

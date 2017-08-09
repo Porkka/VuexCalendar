@@ -1,7 +1,7 @@
 <template>
 	<div v-bind:class="entry.classes" 
 		draggable="true"
-		@dragstart.stop="onDragstart"
+		@dragstart="onDragstart"
 		@dragover.prevent.stop="onDragover"
 		@click.stop.prevent="onClick"
 		v-bind:data-uid="entry.uid"
@@ -16,7 +16,8 @@
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
-var moment = require('moment');
+var moment = require('moment'),
+_ = require('lodash');
 export default {
 
 	mixins: [
@@ -86,10 +87,10 @@ export default {
 	  },
 
 	  onMousedown(e) {
-
 	  },
 
-	  onDragover () {
+	  onDragover(e) {
+      this.$emit('draggedOver', e, e.target);
 	  },
 
 	  onMouseup() {

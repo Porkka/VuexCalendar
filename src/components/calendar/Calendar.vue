@@ -71,7 +71,6 @@ export default {
     if(this._isMonth()) {
       let calendar_dates = this._createMonth();
       this.setEntries(entry_objects);
-      // calendar_dates = this._setEntriesToDates(calendar_dates, entry_objects);
       this.setTimeRanges(calendar_dates);
     } else {
       let calendar_dates = this._createWeek();
@@ -139,7 +138,7 @@ export default {
         stamp_now = this.date.format('X'),
         month_no_now = this.date.format('M'),
         tmp = this.date.clone(),
-        week = { days: [ ] },
+        week = { ranges: [ ] },
         weeks = [ ];
 
       for(var t in this.times) {
@@ -147,7 +146,7 @@ export default {
         if(t % 7 == 0 && t!=0) { // Row every 7th
           weeks.push(week);
           var week = {
-              days: [ ]
+              ranges: [ ]
           };
         }
 
@@ -193,7 +192,7 @@ export default {
           day.classes['pb-future'] = true;
         }
 
-        week.days.push(day);
+        week.ranges.push(day);
       }
       return weeks;
     },
@@ -224,8 +223,8 @@ export default {
 
         // Add data attributes for easier manipulation
         var day = {
-          end: tmp_end,
           start: tmp,
+          end: tmp_end,
           entries: [ ],
           classes: {
             'pb-past': false, 'pb-today': false, 'pb-future': false,
@@ -233,7 +232,7 @@ export default {
           },
           sanitized: tmp.format('L'),
           timestamp: tmp.format('X'),
-          text: tmp.format('hh:mm'),
+          text: tmp.format('HH:mm'),
           title: tmp.format('L'),
           times: [ ]
         };
@@ -261,7 +260,7 @@ export default {
             },
             sanitized: tmp.format('L, hh:mm'),
             timestamp: tmp.format('X'),
-            text: tmp.format('hh:mm'),
+            text: tmp.format('HH:mm'),
             title: tmp.format('L')
           };
 
@@ -319,45 +318,6 @@ export default {
 
 
 /*** HELPERS ***/
-    /** Starting and ending dates are the dates supplied as parameters **/
-    _rangeToDays(a_date, b_date) {
-      // var start = moment(a_date);
-      // var end = moment(b_date);
-      // var tmp = start.clone();
-
-      // // Days to add to start and to end to get full weeks
-      // var start_num = 24 - start.hour() - start.minutes() / 60 - 0.01;
-      // var end_num = 24 - end.hour() - end.minutes() / 60 - 0.01;
-
-      // // Return variable
-      // var days = [ ];
-
-      // // Init day variable and add first day to return array
-      // var day = { start: null, end: null };
-      // day.start = this._longFormat(tmp);
-      // tmp.add(start_num, 'hours');
-      // day.end = this._longFormat(tmp);
-
-      // // Loop till too far (same day as the parameter end date)
-      // while(tmp.format('x') <= end.format('x')) {
-      //   // Add to return value
-      //   days.push(day);
-      //   var day = { start: null, end: null };
-      //   // Skip to monday
-      //   tmp.add(1, 'hours');
-      //   day.start = this._longFormat(tmp);
-      //   // Skip to sunday
-      //   tmp.add(23, 'hours');
-      //   day.end = this._longFormat(tmp);
-      // }
-      // tmp.subtract(end_num, 'hours');
-      // day.end = this._longFormat(tmp);
-      // // Add to return value
-      // days.push(day);
-
-      // return days;
-    },
-
     _getOverlappingEntries(entry, entry_objects) {
       return entry_objects.filter(function(item) {
         if(item.guid != entry.guid) { // Skip if entry itself
@@ -386,6 +346,7 @@ export default {
   color: #FFFFFF;
   cursor: pointer;
   padding: 2px 4px;
+  box-sizing: border-box;
   position: absolute;
   transition: 0.15s all;
   border: 1px solid #424242;

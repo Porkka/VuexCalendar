@@ -9,6 +9,7 @@
     {{ _isMonth() ? day.text : '' }}
     <entry v-for="(entry, k) in day_entries" 
     v-bind:key="k" 
+    v-on:draggedOver="onDraggedOverEntry"
     v-bind:entry="entry"></entry>
   </td>
 </template>
@@ -30,7 +31,7 @@ export default {
   computed: {
     ...mapGetters([
       'moving', 'resizing', 'selecting', 'entries',
-      'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp',
+      'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
       'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date'
     ]),
     day_entries: function() {
@@ -39,7 +40,7 @@ export default {
       for(let e in this.entries) {
         let start = this.entries[ e ].from.clone().format('X');
         if(this._isMonth()) {
-          start = start.hours(0).minutes(0).seconds(0).format('X');
+          start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
         }
         if(start == day_format) {
           entries.push(this.entries[ e ]);
@@ -67,7 +68,6 @@ export default {
     ]),
 
     onDrag(e) {
-      // console.log('Day: Dragging');
     },
 
     onDrop(e) {
@@ -98,15 +98,21 @@ export default {
             var styles = _.cloneDeep(entries[ ent ].styles);
             styles.top = (overlaps.length * parseInt(entries[ ent ].styles.height)) + (5 * overlaps.length) + 20 + 'px';
             entries[ ent ].styles = styles;
+          } else {
+            var width = 100 / (overlaps.length + 1);
+            entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
+            entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
+            for(let e in overlaps) {
+              overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
+            }
           }
           all_entries.push(entries[ ent ]);
         }
 
-      }, 500);
+      }, 400);
     },
 
     onClick(e) {
-      // console.log('Day: Clicked');
     },
 
     onDragover(e) {
@@ -120,6 +126,35 @@ export default {
           }
         } else if(this.drag_event_on_date.timestamp != this.day.timestamp) {
           this.setDragEventOnDate(this.day);
+          if(this.moving) {
+            this._doEntryMove();
+          } else if(this.resizing) {
+            this._doEntryResize();
+          }
+        }
+      }
+    },
+
+    onDraggedOverEntry(e, entry_element) {
+      if(this.drag_event_entry && entry_element) {
+        let slot = this._getElementFromMousePosition(e.clientX, e.clientY, entry_element);
+        if(!this.drag_event_on_date) {
+          let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
+          if(!d) {
+            return;
+          }
+          this.setDragEventOnDate(d);
+          if(this.moving) {
+            this._doEntryMove();
+          } else if(this.resizing) {  
+            this._doEntryResize();
+          }
+        } else if(this.drag_event_on_date.timestamp != slot.dataset.timestamp) {
+          let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
+          if(!d) {
+            return;
+          }
+          this.setDragEventOnDate(d);
           if(this.moving) {
             this._doEntryMove();
           } else if(this.resizing) {
@@ -154,6 +189,11 @@ export default {
         let end = start.clone();
         end.add(diff);
 
+        if(self._isWeek() && start.day() != end.day()) {
+          let day_start = self._splitTimeStr(self.options.day_start);
+          end.add(day_start.hours, 'hours');
+        }
+
         entry.start = self._longFormat(start);
         entry.from = start;
         entry.end = self._longFormat(end);
@@ -169,7 +209,6 @@ export default {
         self.appendEntries(entries);
 
       }, 500);
-
     },
 
     _doEntryResize() {
@@ -205,7 +244,6 @@ export default {
         if(self.options.type == 'month') {
           moment_end.hours(old_end.hours());
         }
-
         entry.end = self._longFormat(moment_end);
 
         let entries = self._createEntryObjects([ entry ]);
@@ -219,19 +257,15 @@ export default {
     },
 
     onMousedown(e) {
-      // console.log('Day: Mouse is down');
     },
 
     onMouseup(e) {
-      // console.log('Day: Mouse is up');
     },
 
     onMousemove(e) {
-      // console.log('Day: Mouse moving');
     },
 
     onMouseover(e) {
-      // console.log('Day: Mouse over');
     },
   }
 

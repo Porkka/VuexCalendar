@@ -5,7 +5,7 @@
 			<th v-for="header in headers" class="day-title" v-html="header.text"></th>
 		</tr>
 		<tr class="heading-row">
-			<th colspan="8">
+			<th colspan="9">
 				<a href="#" class="pb-nav prev" v-html="this.options.prev_nav"
 				@click.stop.prevent="previousView"></a>
 				<span class="pb-title">{{ this.title }}</span>
@@ -13,11 +13,11 @@
 				@click.stop.prevent="nextView"></a>
 			</th>
 		</tr>
-		<tr v-if="_isMonth()" class="entry-row" v-for="(range, k) in time_ranges">
-      <day v-for="time in range.times" v-bind:day="time" v-bind:key="k"></day>
+		<tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
+      <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k"></day>
 		</tr>
 		<tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
-			<td v-text="time.text"></td>
+			<td v-text="time.text + ' ' + l"></td>
 			<day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l"></day>
 		</tr>
 	</table>
@@ -78,6 +78,13 @@ export default {
       var overlaps = this._getOverlappingEntries(this.entries[ ent ], all_entries);
       if(this._isMonth()) {
         this.entries[ ent ].styles.top = (overlaps.length * parseInt(this.entries[ ent ].styles.height)) + (5 * overlaps.length) + 20 + 'px';
+      } else {
+      	var width = 100 / (overlaps.length + 1);
+      	this.entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
+        this.entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
+        for(let e in overlaps) {
+        	overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
+        }
       }
       all_entries.push(this.entries[ ent ]);
     }
@@ -147,7 +154,6 @@ export default {
 	    }
 	  },
 
-
 	  previousView() {
 	  	this.$emit('prev');
 	  },
@@ -155,7 +161,6 @@ export default {
 	  nextView() {
 	  	this.$emit('next');
 	  },
-
 
 	}
 
