@@ -93,6 +93,7 @@ export default {
             tmp_start = moment(days[i].start),
             tmp_end = moment(days[i].end);
             split.guid = this._guid();
+
             if(!i) {
               origin_guid = split.guid;
             } else {
@@ -107,16 +108,12 @@ export default {
 
             let diff = Math.floor(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length);
             split.styles.height = 'calc(' + (diff * 100 - 15) + '% + ' + diff + 'px)';
-            
-            split.styles.width = 'calc(' + 100 + '% - 30px)';
-
             entry_objects.push(split);
           }
         } else {
           entry.has_resizer = true;
           let diff = Math.floor(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length);
           entry.styles.height = 'calc(' + (diff * 100 - 15) + '% + ' + diff + 'px)';
-          entry.styles.width = 'calc(' + 100 + '% - 30px)';
           entry_objects.push(entry);
         }
       }

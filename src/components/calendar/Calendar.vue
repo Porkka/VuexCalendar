@@ -33,7 +33,7 @@ export default {
     return {
       id: null,
       classObj: {
-        'pb-calendar': true
+        'vuex-calendar': true
       },
       times: [
 
@@ -200,18 +200,19 @@ export default {
     _createWeek() {
 
       var clone = this.date.clone();
-
       var date_now = clone.format('l'),
+        week = { ranges: [ ] },
         stamp_now = clone.format('X'),
         month_no_now = clone.format('M'),
         start = clone.isoWeekday(1).clone(),
         end = clone.endOf('week').clone(),
-        week = { ranges: [ ] };
+        time_format = this.options.format.time,
+        date_format = this.options.format.date,
+        day_end = this._splitTimeStr(this.options.day_end),
+        day_start = this._splitTimeStr(this.options.day_start),
+        interval = this._splitTimeStr(this.options.hour_interval),
+        end_day = 7, start_day = 0;
 
-      var day_end = this._splitTimeStr(this.options.day_end);
-      var day_start = this._splitTimeStr(this.options.day_start);
-      var interval = this._splitTimeStr(this.options.hour_interval);
-      var end_day = 7, start_day = 0;
       while(start_day < end_day) {
 
         var tmp = start.clone();
@@ -232,7 +233,7 @@ export default {
           },
           sanitized: tmp.format('L'),
           timestamp: tmp.format('X'),
-          text: tmp.format('HH:mm'),
+          text: tmp.format('hh:mm'),
           title: tmp.format('L'),
           times: [ ]
         };
@@ -254,14 +255,14 @@ export default {
             start: tmp,
             end: tmp_end,
             entries: [ ],
+            timestamp: tmp.format('X'),
+            text: tmp.format(time_format),
+            title: tmp.format(date_format + ', ' + time_format),
+            sanitized: tmp.format(date_format + ', ' + time_format),
             classes: {
               'pb-past': false, 'pb-today': false, 'pb-future': false,
               'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
             },
-            sanitized: tmp.format('L, hh:mm'),
-            timestamp: tmp.format('X'),
-            text: tmp.format('HH:mm'),
-            title: tmp.format('L')
           };
 
           day.times.push(time);
@@ -277,16 +278,20 @@ export default {
     prev() {
   
       if(this._isMonth()) {
-        this.date.subtract(1, 'months').clone()
+        this.date.subtract(1, 'months').clone();
+      } else if(this._isWeek()) {
+        this.date.subtract(7, 'days').clone();
       }
-      this.options.selected_date = this._longFormat(this.date);
 
+      this.options.selected_date = this._longFormat(this.date);
       this.times = this._createTimes();
  
       if(this.options.type == 'month') {
         let calendar_dates = this._createMonth();
-        // calendar_dates = this._setEntriesToDates(calendar_dates, entry_objects);
         this.setTimes(calendar_dates);
+      } else {
+        let calendar_dates = this._createWeek();
+        this.setTimeRanges(calendar_dates);
       }
 
       this.setSelectedDate(this.date);
@@ -298,7 +303,6 @@ export default {
         this.date.add(1, 'months').clone()
       } else if(this._isWeek()) {
         this.date.add(7, 'days').clone()
-        console.log(this.date);
       }
 
       this.options.selected_date = this._longFormat(this.date);
@@ -337,159 +341,3 @@ export default {
   } // Methods
 }
 </script>
-<style>/*** === CORE SKELETON === ***/
-.pb-calendar {
-  position: relative;
-}
-.pb-calendar .entry {
-  z-index: 10;
-  color: #FFFFFF;
-  cursor: pointer;
-  padding: 2px 4px;
-  box-sizing: border-box;
-  position: absolute;
-  transition: 0.15s all;
-  border: 1px solid #424242;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  user-select: none;
-}
-.pb-calendar .entry:hover {
-  opacity: 0.95;
-}
-.pb-calendar.table {
-  position: relative;
-}
-.pb-calendar table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.pb-calendar table th {
-  height: 20px;
-  text-align: center;
-}
-.pb-calendar .pb-nav {
-}
-.pb-calendar .pb-nav.prev {
-}
-.pb-calendar .pb-nav.next {
-}
-.pb-calendar table .day-name-row {
-}
-.pb-calendar table .day-title {
-  text-transform: uppercase;
-}
-.pb-calendar table td.pb-time {
-  width: 80px;
-}
-.pb-calendar table td {
-  height: auto;
-  padding: 0 0 0 10px;
-  position: relative;
-  transition: 0.15s background;
-  border: 1px solid #DEDEDE;
-  -webkit-user-select: none;  /* Chrome all / Safari all */
-  -moz-user-select: none;     /* Firefox all */
-  -ms-user-select: none;      /* IE 10+ */
-  user-select: none;          /* Likely future */
-}
-.pb-calendar td.selected {
-  background-color: #EAEDFF;
-}
-.pb-calendar table td span {
-  display: block;
-  color: #FFFFFF;
-  padding: 10px 0;
-  text-align: center;
-}
-/*** === /CORE SKELETON === ***/
-
-
-/*** === MODIFIERS === ***/
-.pb-calendar table td.pb-past span:not(.entry) {
-}
-.pb-calendar table td.pb-prev-month span:not(.entry),
-.pb-calendar table td.pb-next-month span:not(.entry) {
-  opacity: 0.55;
-  color: #424242;
-  background-color: #D4D2D2;
-}
-/*** === /MODIFIERS === ***/
-
-/*** === MONTH === ***/
-.pb-calendar.month table td {
-    width: 244px;
-  height: 120px;
-  position: relative;
-    vertical-align: top;
-}
-a.pb-read-more {
-  left: 50%;
-    bottom: 0;
-    width: 66px;
-    font-size: 13px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    text-overflow: clip;
-    transform: translateX(-50%);
-}
-.pb-read-more-container {
-  top: 100%;
-  z-index: 100;
-  padding: 14px;
-  display: none;
-  border-radius: 4px;
-  position: absolute;
-  border: 1px solid #DEDEDE;
-  background-color: #FFFFFF;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-.pb-read-more-container .entry {
-  position: relative !important;
-}
-.week .pb-resizer {
-  left: 50%;
-  margin: 0;
-  bottom: 0;
-  width: 90%;
-  float: none;
-  height: 12px;
-  display: block;
-  cursor: s-resize;
-  background-color: aliceblue;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  position: absolute;
-  transform: translate(-50%, -30%);
-}
-.month .pb-resizer {
-  margin: -2px -4px;
-  width: 16px;
-  height: 22px;
-  float: right;
-  display: block;
-  cursor: e-resize;
-  background-color: aliceblue;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/*** === /MONTH === ***/
-
-
-@media screen and (max-width: 1200px) {
-
-  .pb-calendar.container {
-    width: 100%;
-  }
-
-}
-
-</style>

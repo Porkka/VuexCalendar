@@ -17,7 +17,7 @@
       <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k"></day>
 		</tr>
 		<tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
-			<td v-text="time.text + ' ' + l"></td>
+			<td v-text="time.text"></td>
 			<day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l"></day>
 		</tr>
 	</table>
@@ -95,22 +95,19 @@ export default {
 	  monthHeader(moment) {
 		  // Header
 		  moment.locale(this.locale);
-		  var tmp = moment.clone();
-		  var headers = [ ];
+		  var tmp = moment.clone(),
+		  headers = [ ],
+		  startWeek = tmp.startOf('isoWeek').clone(),
+		  endWeek = tmp.endOf('isoWeek').clone();
 
-		  var startWeek = tmp.startOf('isoWeek').clone();
-		  var endWeek = tmp.endOf('isoWeek').clone();
-
-		  // Loop trough the week and push generate day names as headers
-		  while(startWeek.format('d') != endWeek.format('d')) {
-				var cell = {
-					text: startWeek.format('dddd').substr(0, 2)
-				};
+			// Loop trough the week and push generate day names as headers
+			while(startWeek.format('d') != endWeek.format('d')) {
+				var cell = { text: startWeek.format('dddd').substr(0, 2) };
 				startWeek.add(1, 'days');
 				// Append to table headers
 				headers.push(cell);
-		  }
-		  // Last cell
+			}
+			// Last cell
 			var cell = {
 				text: startWeek.format('dddd').substr(0, 2),
 				sanitized: startWeek.format('l')
@@ -129,10 +126,10 @@ export default {
 		  var headers = [ ];
 		  var startWeek = tmp.startOf('isoWeek').clone();
 		  var endWeek = tmp.endOf('isoWeek').clone();
-      var range = startWeek.format('L') + ' - ' + endWeek.format('L');
+      var range = startWeek.format(this.options.format.date) + ' - ' + endWeek.format(this.options.format.date);
       while(startWeek.format('d') != endWeek.format('d')) {
 				var cell = {
-					text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format('l')
+					text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date)
 				};
 				startWeek.add(1, 'days');
 				// Append to table headers

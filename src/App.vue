@@ -3,10 +3,14 @@
     <calendar v-bind:entries="entries" v-bind:options="options"></calendar>
   </div>
 </template>
-
+<style lang="scss">
+  @import './assets/sass/general.scss'
+</style>
 <script>
+
 import { mapActions, mapGetters } from 'vuex'
 import calendar from './components/calendar/Calendar'
+
 export default {
 
   components: {
@@ -18,13 +22,17 @@ export default {
       entries: [ ],
       options: {
         theme: 'original',
-        locale: 'fi',
+        locale: 'en',
         entry_limit: 3,
         day_start: '08:00',
         day_end: '23:59:59',
         prev_nav: '&laquo;',
         next_nav: '&raquo;',
         type: 'week',
+        format: {
+          time: 'hh:mm a',
+          date: 'L'
+        },
         selected_date: '2017-08-01 10:00',
         breakpoints: {
           767: { type: 'day', entry_limit: 2 }

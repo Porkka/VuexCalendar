@@ -10,6 +10,10 @@ export default {
     prev_nav: '&laquo;',
     next_nav: '&raquo;',
     selected_date: null,
+    format: {
+      time: 'hh:mm a',
+      date: 'L'
+    },
     breakpoints: { 767: { type: 'day', entry_limit: 2 } },
     events: { move: true, resize: true  , select: true },
     type_names: {
