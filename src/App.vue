@@ -24,11 +24,11 @@ export default {
         theme: 'original',
         locale: 'en',
         entry_limit: 3,
-        day_start: '08:00',
+        day_start: '07:00',
         day_end: '23:59:59',
         prev_nav: '&laquo;',
         next_nav: '&raquo;',
-        type: 'week',
+        type: 'month',
         format: {
           time: 'hh:mm a',
           date: 'L'
@@ -53,8 +53,8 @@ export default {
     this.entries = [
        {
         title: '0000',
-        start: '2017-07-31 09:00',
-        end: '2017-07-31 13:55',
+        start: '2017-07-31 15:00',
+        end: '2017-07-31 18:00',
         styles: {
           background: 'red',
         }

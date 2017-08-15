@@ -60,6 +60,10 @@ export default {
     }
   },
 
+  created() {
+
+  },
+
   methods: {
 
     ...mapActions([
@@ -67,52 +71,51 @@ export default {
       'removeActiveEntries', 'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries'
     ]),
 
+
     onDrag(e) {
     },
 
     onDrop(e) {
       var self = this;
-      setTimeout(function() {
-        if(self.resizing) {
-          if(self.options.onEntryResizeConfirm()) {
-            self.resetEvents();
-          } else {
-            self.removeActiveEntries();
-            self.restoreEntries();
-          }
-        } else if(self.moving) {
-          if(self.options.onEntryMoveConfirm()) {
-            self.resetEvents();
-          } else {
-            self.removeActiveEntries();
-            self.restoreEntries();
+      if(self.resizing) {
+        if(self.options.onEntryResizeConfirm()) {
+          self.resetEvents();
+        } else {
+          self.removeActiveEntries();
+          self.restoreEntries();
+        }
+      } else if(self.moving) {
+        if(self.options.onEntryMoveConfirm()) {
+          self.resetEvents();
+        } else {
+          self.removeActiveEntries();
+          self.restoreEntries();
+        }
+      }
+
+      var entries = _.sortBy(self.entries, function(o) { return parseInt(o.origin_from.format('X')); });
+      // this.entries = ent;
+      var all_entries = [ ];
+      for(let ent in entries) {
+        var overlaps = self._getOverlappingEntries(entries[ ent ], all_entries);
+        if(self._isMonth()) {
+          var styles = _.cloneDeep(entries[ ent ].styles);
+          styles.top = (overlaps.length * parseInt(entries[ ent ].styles.height)) + (5 * overlaps.length) + 20 + 'px';
+          entries[ ent ].styles = styles;
+        } else {
+          var width = 100 / (overlaps.length + 1);
+          entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
+          entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
+          for(let e in overlaps) {
+            overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
           }
         }
-
-        var entries = _.sortBy(self.entries, function(o) { return parseInt(o.origin_from.format('X')); });
-        // this.entries = ent;
-        var all_entries = [ ];
-        for(let ent in entries) {
-          var overlaps = self._getOverlappingEntries(entries[ ent ], all_entries);
-          if(self._isMonth()) {
-            var styles = _.cloneDeep(entries[ ent ].styles);
-            styles.top = (overlaps.length * parseInt(entries[ ent ].styles.height)) + (5 * overlaps.length) + 20 + 'px';
-            entries[ ent ].styles = styles;
-          } else {
-            var width = 100 / (overlaps.length + 1);
-            entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
-            entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
-            for(let e in overlaps) {
-              overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
-            }
-          }
-          all_entries.push(entries[ ent ]);
-        }
-
-      }, 400);
+        all_entries.push(entries[ ent ]);
+      }
     },
 
     onClick(e) {
+      console.log(this.day.start, this.day.end)
     },
 
     onDragover(e) {
@@ -176,29 +179,32 @@ export default {
 
       var self = this;
       clearTimeout(this.timer);
-      this.timer = setTimeout(function() {
-        let entry = self.drag_event_entry,
+      // this.timer = setTimeout(function() {
+        var entry = self.drag_event_entry,
         old_start = entry.origin_from,
         old_end = entry.origin_to,
-        diff = moment.duration(old_end.diff(old_start));
+        day_start = self._splitTimeStr(self.options.day_start),
+        day_end = self._splitTimeStr(self.options.day_end),
+        start = self.drag_event_on_date.start.clone(),
+        diff = moment.duration(start.diff(old_start)).asMilliseconds();
 
-        let start = self.drag_event_on_date.start.clone();
+        let end = old_end.clone().add(diff);
+
         if(self._isMonth()) {
           start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
         }
-        let end = start.clone();
-        end.add(diff);
 
-        if(self._isWeek() && start.day() != end.day()) {
-          let day_start = self._splitTimeStr(self.options.day_start);
-          end.add(day_start.hours, 'hours');
+        if(self._isWeek() && start.day() < end.day() && (end.hours() || end.minutes()) ) {
+          if(start.hours() > end.hours()) {
+            end.add(day_start.hours, 'hours');
+          }
         }
 
         entry.start = self._longFormat(start);
         entry.from = start;
         entry.end = self._longFormat(end);
         entry.to = end;
-        // entry.most_top = 1;
+
         let entries = self._createEntryObjects([ entry ]);
 
         self.removeActiveEntries();
@@ -208,7 +214,7 @@ export default {
 
         self.appendEntries(entries);
 
-      }, 500);
+      // }, 500);
     },
 
     _doEntryResize() {
@@ -227,24 +233,26 @@ export default {
         guid = entry.guid,
         old_start = moment(entry.start),
         old_end = moment(entry.end),
-        moment_start = moment(entry.start),
-        moment_end = self.drag_event_on_date.end;
-
-        let tmp = moment_start.clone();
+        start = moment(entry.start),
+        day_start = self._splitTimeStr(self.options.day_start),
+        end = self.drag_event_on_date.end,
+        tmp = start.clone();
 
         if(self._isMonth()) {
-          if(tmp.hours(0).minutes(0).seconds(0).format('X') > moment_end.format('X')) {
+          if(tmp.hours(0).minutes(0).seconds(0).format('X') > end.format('X')) {
             return;
           }
         } else {
-          if(tmp.format('X') > moment_end.format('X')) {
+          if(tmp.format('X') > end.format('X')) {
             return;
-          }          
+          }
         }
-        if(self.options.type == 'month') {
-          moment_end.hours(old_end.hours());
+
+        if(self._isMonth()) {
+          end.hours(old_end.hours());
         }
-        entry.end = self._longFormat(moment_end);
+
+        entry.end = self._longFormat(end);
 
         let entries = self._createEntryObjects([ entry ]);
         self.removeActiveEntries();

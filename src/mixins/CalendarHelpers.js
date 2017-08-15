@@ -10,8 +10,6 @@ export default {
       } else if(this._isWeek()) {
         var entry_objects = this._createWeekEntryObjects(entries);
       }
-      
-
       return entry_objects;
     },
 
@@ -77,11 +75,9 @@ export default {
       length = interval.hours * 3600 + interval.minutes * 60,
       entry_objects = [ ];
       for(let ent in entries) {
-
         let entry = this._initEntryObject(entries[ ent ]),
         tmp_start = entry.from.clone(),
         tmp_end = entry.to.clone();
-
         if(tmp_start.day() != tmp_end.day()) {
           // Clone so we don't change the existing one...
           var days = this._rangeToDays(tmp_start, tmp_end),
@@ -106,17 +102,18 @@ export default {
             split.to = moment(split.end);
             split.has_resizer = ( i + 1 ) == day_count;
 
-            let diff = Math.floor(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length);
+            let diff = Math.max(Math.ceil(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length), 1);
             split.styles.height = 'calc(' + (diff * 100 - 15) + '% + ' + diff + 'px)';
             entry_objects.push(split);
           }
         } else {
           entry.has_resizer = true;
-          let diff = Math.floor(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length);
+          let diff = Math.max(Math.ceil(parseInt(tmp_end.diff(tmp_start, 'seconds')) / length), 1);
           entry.styles.height = 'calc(' + (diff * 100 - 15) + '% + ' + diff + 'px)';
           entry_objects.push(entry);
         }
       }
+      // console.log(entry_objects);
       return entry_objects;
     },
 
@@ -127,7 +124,6 @@ export default {
     /** Starting and ending dates are the dates supplied as parameters **/
     _rangeToWeeks(start, end) {
       let tmp = start.clone();
-
       let weeks = [ ];
       // Days to add to start and to end to get full weeks
       let start_num = 7 - tmp.isoWeekday();
@@ -168,33 +164,40 @@ export default {
 
     /** Starting and ending dates are the dates supplied as parameters **/
     _rangeToDays(start, end) {
-        var days = [ ], tmp = start.clone(),
-        day_start = this._splitTimeStr(this.options.day_start),
-        day_end = this._splitTimeStr(this.options.day_end),
-        start_num = 24 - start.hour() - start.minutes() / 60 - 0.01;
-
-        // Init day variable and add first day to return array
-        var day = { start: null, end: null };
-        day.start = this._longFormat(tmp);
-        tmp.add(start_num, 'hours');
-        day.end = this._longFormat(tmp);
-        days.push(day);
-        while(tmp.day() < end.day()) {
-            var day = { start: null, end: null };
-
-            tmp.add('1', 'days').hours(day_start.hours).minutes(day_start.minutes);
-            // console.log(tmp.format('L, HH:mm'));
-            day.start = this._longFormat(tmp);
-
-            tmp.hours(day_end.hours).minutes(day_end.minutes);
-            if(tmp.format('x') > end.format('x')) { // Whoops! Too much
-              tmp.hours(end.hours()).minutes(end.minutes());
-            }
-            // console.log(tmp.format('L, HH:mm'));
-            day.end = this._longFormat(tmp);
-
-            days.push(day);
+      var days = [ ], tmp = start.clone(),
+      day_start = this._splitTimeStr(this.options.day_start),
+      day_end = this._splitTimeStr(this.options.day_end),
+      end_num = 24 - start.hour() - start.minutes() / 60;
+      // Init day variable and add first day to return array
+      // 1. Get first day (Example: 16:30 - 00:00)
+      var day = { start: this._longFormat(tmp), end: null };
+      tmp.add(end_num, 'hours');
+      day.end = this._longFormat(tmp);
+      days.push(day);
+      // 2. Check if tmp.format('x') < end.format('x')
+      if(tmp.format('x') < end.format('x')) {
+        day = { start: null, end: null };
+        tmp.hours(day_start.hours).minutes(day_start.minutes).seconds(day_start.seconds);
+        // 3. Take day length (day_end - day_start)
+        let ms = moment().hours(day_start.hours).minutes(day_start.minutes).seconds(day_start.seconds),
+        me = moment().hours(day_end.hours).minutes(day_end.minutes).seconds(day_end.seconds),
+        // 4. Take length of the remaining time (end - tmp)
+        diff_in_days = end.diff(tmp, 'days');
+        for(let i = 0; i < diff_in_days; i++) {
+          day = { start: this._longFormat(tmp), end: null };
+          tmp.hours(day_end.hours).minutes(day_end.minutes).seconds(day_end.seconds);
+          day.end = this._longFormat(tmp);
+          days.push(day);
+          tmp.add(1, 'days');
+          tmp.hours(day_start.hours).minutes(day_start.minutes).seconds(day_start.seconds);
         }
+        if(tmp.format('x') < end.format('x')) {
+          day = { start: this._longFormat(tmp), end: null };
+          tmp.hours(day_end.hours).minutes(day_end.minutes).seconds(day_end.seconds);
+          day.end = this._longFormat(end);
+          days.push(day);
+        }
+      }
         return days;
     },
 

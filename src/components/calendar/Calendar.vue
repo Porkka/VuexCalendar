@@ -211,6 +211,7 @@ export default {
         day_end = this._splitTimeStr(this.options.day_end),
         day_start = this._splitTimeStr(this.options.day_start),
         interval = this._splitTimeStr(this.options.hour_interval),
+        length = interval.hours * 3600 + interval.minutes * 60 + interval.seconds,
         end_day = 7, start_day = 0;
 
       while(start_day < end_day) {
@@ -247,9 +248,10 @@ export default {
 
         for(let t in this.times) {
           tmp = tmp.clone();
-          tmp_end = tmp.clone();
           tmp.hours(this.times[t].hours()).minutes(this.times[t].minutes()).seconds(this.times[t].seconds());
-          tmp_end.add(interval.hours, 'hours').add(interval.minutes, 'minutes').seconds(interval.seconds, 'seconds');
+          tmp_end = tmp.clone();
+          tmp_end.add(length, 'seconds');
+          // console.log(tmp.format('L, HH:mm') + ' - ' + tmp_end.format('L, HH:mm'))
           // Add data attributes for easier manipulation
           let time = {
             start: tmp,
@@ -258,7 +260,7 @@ export default {
             timestamp: tmp.format('X'),
             text: tmp.format(time_format),
             title: tmp.format(date_format + ', ' + time_format),
-            sanitized: tmp.format(date_format + ', ' + time_format),
+            sanitized: tmp.format(date_format + ', ' + time_format) + ' - ' + tmp_end.format(date_format + ', ' + time_format),
             classes: {
               'pb-past': false, 'pb-today': false, 'pb-future': false,
               'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
