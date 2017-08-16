@@ -1,9 +1,11 @@
 <template>
   <td 
+    draggable="true"
     @drop="onDrop"
+    @dragstart="onDragstart"
     @dragover.prevent="onDragover"
     @click.stop.prevent="onClick"
-    v-bind:class="day.classes" 
+    v-bind:class="day.classes"
     v-bind:data-sanitized="day.sanitized"
     v-bind:data-timestamp="day.timestamp">
     {{ _isMonth() ? day.text : '' }}
@@ -61,18 +63,28 @@ export default {
   },
 
   created() {
-
   },
 
   methods: {
 
     ...mapActions([
-      'activateDay', 'activateEntry', 'setTargetDay', 'setDragEventOnDate', 'resetEvents', 'setDragEventEntry',
-      'removeActiveEntries', 'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries'
+      'activateDay', 'activateEntry', 'setTargetDay', 'setDragEventOnDate', 'resetEvents', 'setSelectingEvent', 'setDragEventEntry', 'selectDayRange',
+      'removeActiveEntries', 'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
     ]),
 
 
     onDrag(e) {
+    },
+
+    onDragstart(e) {
+
+      let img = new Image();
+      img.src = './src/assets/ghost.png';
+      e.dataTransfer.setDragImage(img, 10, 10);
+      this.setSelectingEvent(true);
+
+      this.resetActiveEntries();
+      this.setDragEventOriginDate(this.day); // Find day object from store with the timestamp
     },
 
     onDrop(e) {
@@ -91,6 +103,10 @@ export default {
           self.removeActiveEntries();
           self.restoreEntries();
         }
+      } else if(this.selecting) {
+        this.$emit('onRangeselect', this.drag_event_origin_date, this.drag_event_on_date);
+        self.resetEvents();
+        return;
       }
 
       var entries = _.sortBy(self.entries, function(o) { return parseInt(o.origin_from.format('X')); });
@@ -115,25 +131,27 @@ export default {
     },
 
     onClick(e) {
-      console.log(this.day.start, this.day.end)
+      console.log(this.day.start, this.day.end);
     },
 
     onDragover(e) {
-      if(this.drag_event_entry) {
-        if(!this.drag_event_on_date) {
-          this.setDragEventOnDate(this.day);
-          if(this.moving) {
-            this._doEntryMove();
-          } else if(this.resizing) {  
-            this._doEntryResize();
-          }
-        } else if(this.drag_event_on_date.timestamp != this.day.timestamp) {
-          this.setDragEventOnDate(this.day);
-          if(this.moving) {
-            this._doEntryMove();
-          } else if(this.resizing) {
-            this._doEntryResize();
-          }
+      if(!this.drag_event_on_date) {
+        this.setDragEventOnDate(this.day);
+        if(this.moving && this.drag_event_entry) {
+          this._doEntryMove();
+        } else if(this.resizing && this.drag_event_entry) {  
+          this._doEntryResize();
+        } else if(this.selecting) {
+          this._doDaySelect();
+        }
+      } else if(this.drag_event_on_date.timestamp != this.day.timestamp) {
+        this.setDragEventOnDate(this.day);
+        if(this.moving && this.drag_event_entry) {
+          this._doEntryMove();
+        } else if(this.resizing && this.drag_event_entry) {
+          this._doEntryResize();
+        } else if(this.selecting) {
+          this._doDaySelect();
         }
       }
     },
@@ -177,44 +195,38 @@ export default {
         return;
       }
 
-      var self = this;
-      clearTimeout(this.timer);
-      // this.timer = setTimeout(function() {
-        var entry = self.drag_event_entry,
-        old_start = entry.origin_from,
-        old_end = entry.origin_to,
-        day_start = self._splitTimeStr(self.options.day_start),
-        day_end = self._splitTimeStr(self.options.day_end),
-        start = self.drag_event_on_date.start.clone(),
-        diff = moment.duration(start.diff(old_start)).asMilliseconds();
+      var entry = this.drag_event_entry,
+      old_start = entry.origin_from,
+      day_start = this._splitTimeStr(this.options.day_start),
+      day_end = this._splitTimeStr(this.options.day_end),
+      start = this.drag_event_on_date.start.clone(),
+      diff = moment.duration(start.diff(old_start)).asMilliseconds();
 
-        let end = old_end.clone().add(diff);
+      let end = entry.origin_to.clone().add(diff);
 
-        if(self._isMonth()) {
-          start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
+      if(this._isMonth()) {
+        start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
+      }
+
+      if(this._isWeek() && start.day() < end.day() && (end.hours() || end.minutes()) ) {
+        if(start.hours() > end.hours()) {
+          end.add(day_start.hours, 'hours');
         }
+      }
 
-        if(self._isWeek() && start.day() < end.day() && (end.hours() || end.minutes()) ) {
-          if(start.hours() > end.hours()) {
-            end.add(day_start.hours, 'hours');
-          }
-        }
+      entry.end = this._longFormat(end);
+      entry.start = this._longFormat(start);
+      entry.from = start;
+      entry.to = end;
 
-        entry.start = self._longFormat(start);
-        entry.from = start;
-        entry.end = self._longFormat(end);
-        entry.to = end;
+      let entries = this._createEntryObjects([ entry ]);
 
-        let entries = self._createEntryObjects([ entry ]);
+      this.removeActiveEntries();
+      for(let e in entries) {
+        this.activateEntry(entries[ e ]);
+      }
 
-        self.removeActiveEntries();
-        for(let e in entries) {
-          self.activateEntry(entries[ e ]);
-        }
-
-        self.appendEntries(entries);
-
-      // }, 500);
+      this.appendEntries(entries);
     },
 
     _doEntryResize() {
@@ -262,6 +274,21 @@ export default {
 
         self.appendEntries(entries);
       }, 400);
+    },
+
+    _doDaySelect() {
+      if(!this.selecting) {
+        return;
+      }
+      if(!this.drag_event_origin_date || !this.drag_event_on_date) {
+        return;
+      }
+
+      this.selectDayRange({
+        start: this.drag_event_origin_date.start,
+        end: this.drag_event_on_date.end
+      });
+
     },
 
     onMousedown(e) {

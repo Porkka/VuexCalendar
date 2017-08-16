@@ -23,6 +23,33 @@ export default {
     }
   },
 
+  SELECT_CALENDAR_RANGE (state, range) {
+    let start = range.start.format('X'), end = range.end.format('X');
+    if(state.options.type == 'month') {
+      for(var i in state.time_ranges) {
+        for(var j in state.time_ranges[ i ].ranges) {
+          let timestamp = state.time_ranges[ i ].ranges[ j ].timestamp;
+          if(start <= timestamp && timestamp <= (end - 1)) {
+            state.time_ranges[ i ].ranges[ j ].classes.selected = true;
+          } else {
+            state.time_ranges[ i ].ranges[ j ].classes.selected = false;
+          }
+        } 
+      }
+    } else {
+      for(var i in state.time_ranges[0].ranges) {
+        for(var j in state.time_ranges[ 0 ].ranges[ i ].times) {
+          let timestamp = state.time_ranges[ 0 ].ranges[ i ].times[ j ].timestamp;
+          if(start <= timestamp && timestamp <= (end - 1)) {
+            state.time_ranges[ 0 ].ranges[ i ].times[ j ].classes.selected = true;
+          } else {
+            state.time_ranges[ 0 ].ranges[ i ].times[ j ].classes.selected = false;
+          }
+        } 
+      }
+    }
+  },
+
   ADD_ENTRY (state, entry) {
     state.entries.push(entry)
   },
@@ -101,6 +128,23 @@ export default {
   },
 
   RESET_EVENTS (state) {
+
+    if(state.events.selecting) {
+      if(state.options.type == 'month') {
+        for(var i in state.time_ranges) {
+          for(var j in state.time_ranges[ i ].ranges) {
+            state.time_ranges[ i ].ranges[ j ].classes.selected = false;
+          } 
+        }
+      } else {
+        for(var i in state.time_ranges[0].ranges) {
+          for(var j in state.time_ranges[ 0 ].ranges[ i ].times) {
+            state.time_ranges[ 0 ].ranges[ i ].times[ j ].classes.selected = false;
+          } 
+        }
+      }
+    }
+
     state.event_data.drag = {
       entry: null,
       on_date: null,

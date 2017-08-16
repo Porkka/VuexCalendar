@@ -7,10 +7,8 @@
   @import './assets/sass/general.scss'
 </style>
 <script>
-
 import { mapActions, mapGetters } from 'vuex'
 import calendar from './components/calendar/Calendar'
-
 export default {
 
   components: {
@@ -63,7 +61,6 @@ export default {
   },
 
   methods: {
-
   }
 
 }

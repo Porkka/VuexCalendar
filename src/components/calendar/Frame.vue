@@ -14,11 +14,13 @@
 			</th>
 		</tr>
 		<tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
-      <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k"></day>
+      <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k"
+      v-on:onRangeselect="rangeSelect"></day>
 		</tr>
 		<tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
 			<td v-text="time.text"></td>
-			<day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l"></day>
+			<day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l"
+			v-on:onRangeselect="rangeSelect"></day>
 		</tr>
 	</table>
 </template>
@@ -149,6 +151,10 @@ export default {
 			  let endWeek = moment.endOf('isoWeek').clone();
 				return startWeek.format('L') + ' - ' + endWeek.format('L');
 	    }
+	  },
+
+	  rangeSelect(start, end) {
+      this.$emit('onRangeselect', start, end);
 	  },
 
 	  previousView() {

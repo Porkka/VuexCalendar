@@ -8,6 +8,10 @@ export default {
 		commit('SET_CALENDAR_OPTIONS', options)
 	},
 
+	selectDayRange: ({ commit }, payload) => {
+		commit('SELECT_CALENDAR_RANGE', payload);
+	},
+
 	setTimeRanges: ({ commit }, time_ranges) => {
 		commit('SET_CALENDAR_TIME_RANGES', time_ranges)
 	},

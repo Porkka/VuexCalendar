@@ -1,7 +1,7 @@
 <template>
 	<div v-bind:class="entry.classes" 
 		draggable="true"
-		@dragstart="onDragstart"
+		@dragstart.stop="onDragstart"
 		@dragover.prevent.stop="onDragover"
 		@click.stop.prevent="onClick"
 		v-bind:data-uid="entry.uid"
@@ -76,7 +76,7 @@ export default {
 			this.activateEntry(entry);
 
 			this.setDragEventEntry(entry);
-      this.setDragEventOriginDate(this.$parent.day); // Find day object from store with the timestamp
+			this.setDragEventOriginDate(this.$parent.day); // Find day object from store with the timestamp
 		},
 
     onDrop(e) {

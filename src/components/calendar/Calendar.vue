@@ -1,6 +1,6 @@
 <template>
   <div v-bind:id="id" v-bind:class="classObj">
-    <frame v-on:prev="prev" v-on:next="next"></frame>
+    <frame v-on:prev="prev" v-on:next="next" v-on:onRangeselect="rangeSelect"></frame>
   </div>
 </template>
 
@@ -160,12 +160,10 @@ export default {
           start: start,
           entries: [ ],
           classes: {
-            'pb-past': false,
-            'pb-today': false,
-            'pb-future': false,
-            'pb-prev-month': false,
-            'pb-next-month': false,
-            'pb-skeleton date-row': true,
+            'selected': false,
+            'pb-past': false, 'pb-today': false,
+            'pb-future': false, 'pb-prev-month': false,
+            'pb-next-month': false, 'pb-skeleton date-row': true,
           },
           sanitized: this.times[t].format('l'),
           timestamp: this.times[t].format('X'),
@@ -229,6 +227,7 @@ export default {
           end: tmp_end,
           entries: [ ],
           classes: {
+            'selected': false,
             'pb-past': false, 'pb-today': false, 'pb-future': false,
             'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
           },
@@ -262,6 +261,7 @@ export default {
             title: tmp.format(date_format + ', ' + time_format),
             sanitized: tmp.format(date_format + ', ' + time_format) + ' - ' + tmp_end.format(date_format + ', ' + time_format),
             classes: {
+              'selected': false,
               'pb-past': false, 'pb-today': false, 'pb-future': false,
               'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
             },
@@ -320,6 +320,10 @@ export default {
       }
 
       this.setSelectedDate(this.date);
+    },
+
+    rangeSelect(start, end) {
+      console.log(start, end);
     },
 
 
