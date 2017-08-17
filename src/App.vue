@@ -4,7 +4,8 @@
   </div>
 </template>
 <style lang="scss">
-  @import './assets/sass/general.scss'
+  @import './assets/sass/general.scss';
+  @import './assets/sass/dot-trail.scss';
 </style>
 <script>
 import { mapActions, mapGetters } from 'vuex'
@@ -24,8 +25,8 @@ export default {
         entry_limit: 3,
         day_start: '07:00',
         day_end: '23:59:59',
-        prev_nav: '&laquo;',
-        next_nav: '&raquo;',
+        prev_nav: '<i class="fa fa-angle-left"></i>',
+        next_nav: '<i class="fa fa-angle-right"></i>',
         type: 'month',
         format: {
           time: 'hh:mm a',

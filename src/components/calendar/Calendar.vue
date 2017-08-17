@@ -1,5 +1,8 @@
 <template>
   <div v-bind:id="id" v-bind:class="classObj">
+    <div v-if="loading" class="loading-overlay">
+      <div class="loader"></div>
+    </div>
     <frame v-on:prev="prev" v-on:next="next" v-on:onRangeselect="rangeSelect"></frame>
   </div>
 </template>
@@ -32,6 +35,7 @@ export default {
   data() {
     return {
       id: null,
+      loading: false,
       classObj: {
         'vuex-calendar': true
       },
@@ -161,9 +165,9 @@ export default {
           entries: [ ],
           classes: {
             'selected': false,
-            'pb-past': false, 'pb-today': false,
-            'pb-future': false, 'pb-prev-month': false,
-            'pb-next-month': false, 'pb-skeleton date-row': true,
+            'past': false, 'today': false,
+            'future': false, 'prev-month': false,
+            'next-month': false, 'skeleton date-row': true,
           },
           sanitized: this.times[t].format('l'),
           timestamp: this.times[t].format('X'),
@@ -173,9 +177,9 @@ export default {
 
         // Prev and next month classes
         if(this.times[t].format('M') < month_no_now) { 
-          day.classes['pb-prev-month'] = true;
+          day.classes['prev-month'] = true;
         } else if( this.times[t].format('M') > month_no_now) {
-          day.classes['pb-next-month'] = true;
+          day.classes['next-month'] = true;
         }
 
         // Today class
@@ -185,9 +189,9 @@ export default {
 
         // Add indicators for past and future times
         if(this.times[t].format('X') < stamp_now) {
-          day.classes['pb-past'] = true;
+          day.classes['past'] = true;
         } else if(this.times[t].format('l') != date_now) {
-          day.classes['pb-future'] = true;
+          day.classes['future'] = true;
         }
 
         week.ranges.push(day);
@@ -278,7 +282,7 @@ export default {
     },
 
     prev() {
-  
+      this.loading = true;
       if(this._isMonth()) {
         this.date.subtract(1, 'months').clone();
       } else if(this._isWeek()) {
@@ -290,27 +294,24 @@ export default {
  
       if(this.options.type == 'month') {
         let calendar_dates = this._createMonth();
-        this.setTimes(calendar_dates);
+        this.setTimeRanges(calendar_dates);
       } else {
         let calendar_dates = this._createWeek();
         this.setTimeRanges(calendar_dates);
       }
-
       this.setSelectedDate(this.date);
+      this.loading = false;
     },
 
     next() {
-   
+      this.loading = true;
       if(this._isMonth()) {
         this.date.add(1, 'months').clone()
       } else if(this._isWeek()) {
         this.date.add(7, 'days').clone()
       }
-
       this.options.selected_date = this._longFormat(this.date);
-
       this.times = this._createTimes();
- 
       if(this._isMonth()) {
         let calendar_dates = this._createMonth();
         this.setTimeRanges(calendar_dates);
@@ -318,8 +319,8 @@ export default {
         let calendar_dates = this._createWeek();
         this.setTimeRanges(calendar_dates);
       }
-
       this.setSelectedDate(this.date);
+      this.loading = false;
     },
 
     rangeSelect(start, end) {

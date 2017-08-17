@@ -1,15 +1,18 @@
 .vuex-calendar {
   position: relative;
+  font-family: 'Quicksand', sans-serif;
 }
 .vuex-calendar .entry {
-  z-index: 10;
+  z-index: 9;
   color: #FFFFFF;
   cursor: pointer;
-  padding: 2px 4px;
-  box-sizing: border-box;
+  padding: 0 4px;
+  border-radius: 5px;
   position: absolute;
   transition: 0.15s all;
-  border: 1px solid #424242;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid #737373;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -31,10 +34,60 @@
   text-align: center;
 }
 .vuex-calendar .pb-nav {
+  width: 30px;
+  height: 40px;
+  line-height: 1;
+  font-size: 24px;
+  align-items: center;
+  display: inline-flex;
+  text-decoration: none;
+  justify-content: center;
 }
 .vuex-calendar .pb-nav.prev {
 }
 .vuex-calendar .pb-nav.next {
+}
+.vuex-calendar {
+
+  .pb-title {
+    height: 40px;
+    width: 130px;
+    line-height: 1;
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  table td {
+
+
+    .day-number {
+      margin: 0;
+      color: #636363;
+      padding: 5px 8px;
+      text-align: right;
+    }
+
+    /*** ===  MODIFIERS === ***/
+    &.pb-past span:not(.entry) {
+    }
+    &.pb-prev-month span:not(.entry),
+    &.pb-next-month span:not(.entry) {
+      opacity: 0.55;
+      color: #424242;
+      background-color: #D4D2D2;
+    }
+    &.past {
+      background-color: #F3F3F3;
+    }
+    &.today {
+      background-color: #FFF2DC;
+    }
+    &.next-month {
+      background-color: #F3F3F3;
+    }
+    /*** === /MODIFIERS === ***/
+  }
 }
 .vuex-calendar table .day-name-row {
 }
@@ -56,7 +109,7 @@
   user-select: none;          /* Likely future */
 }
 .vuex-calendar td.selected {
-  background-color: #EAEDFF;
+  background-color: #B2F5FF;
 }
 .vuex-calendar table td span {
   display: block;
@@ -66,17 +119,6 @@
 }
 /*** === /CORE SKELETON === ***/
 
-
-/*** === MODIFIERS === ***/
-.vuex-calendar table td.pb-past span:not(.entry) {
-}
-.vuex-calendar table td.pb-prev-month span:not(.entry),
-.vuex-calendar table td.pb-next-month span:not(.entry) {
-  opacity: 0.55;
-  color: #424242;
-  background-color: #D4D2D2;
-}
-/*** === /MODIFIERS === ***/
 
 /*** === MONTH === ***/
 .vuex-calendar.month table td {
@@ -156,6 +198,7 @@ a.pb-read-more {
 
     .entry {
       top: 5px;
+      border-radius: 5px;
     }
 
   }

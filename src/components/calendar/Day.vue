@@ -1,5 +1,5 @@
 <template>
-  <td 
+<td 
     draggable="true"
     @drop="onDrop"
     @dragstart="onDragstart"
@@ -8,12 +8,12 @@
     v-bind:class="day.classes"
     v-bind:data-sanitized="day.sanitized"
     v-bind:data-timestamp="day.timestamp">
-    {{ _isMonth() ? day.text : '' }}
+    <span class="day-number" v-if="_isMonth()">{{ day.text }}</span>
     <entry v-for="(entry, k) in day_entries" 
     v-bind:key="k" 
     v-on:draggedOver="onDraggedOverEntry"
     v-bind:entry="entry"></entry>
-  </td>
+</td>
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
@@ -205,7 +205,7 @@ export default {
       let end = entry.origin_to.clone().add(diff);
 
       if(this._isMonth()) {
-        start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
+        // start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
       }
 
       if(this._isWeek() && start.day() < end.day() && (end.hours() || end.minutes()) ) {
@@ -288,7 +288,6 @@ export default {
         start: this.drag_event_origin_date.start,
         end: this.drag_event_on_date.end
       });
-
     },
 
     onMousedown(e) {
