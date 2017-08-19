@@ -5,14 +5,15 @@
 .vuex-calendar .entry {
   z-index: 9;
   color: #FFFFFF;
-  cursor: pointer;
   padding: 0 4px;
-  border-radius: 5px;
-  position: absolute;
-  transition: 0.15s all;
+  cursor: pointer;
   overflow: hidden;
+  border-radius: 3px;
+  position: absolute;
+  white-space: nowrap;
+  transition: 0.15s all;
   box-sizing: border-box;
-  border: 1px solid #737373;
+  text-overflow: ellipsis;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -63,6 +64,44 @@
     justify-content: center;
   }
 
+  .entry-popup-toggle {
+    z-index: 10;
+    width: 30px; 
+    height: 30px; 
+    color: #22A6B5;
+    padding: 5px 0;
+    text-align: center;
+    position: absolute;
+    border-radius: 50%;
+    bottom: 0; right: 0;
+    background-color: #FFFFFF; 
+    box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .entry-popup {
+    z-index: 10;
+    width: 100%;
+    height: auto;
+    top: 0; left: 0;
+    max-height: 240px;
+    position: absolute;
+    background-color: #FFFFFF;
+    border: 1px solid #F3F3F3;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.25);
+
+    .entry-popup-close {
+      position: absolute;
+      top: 0; right: 5px;
+    }
+
+    .entry {
+      margin: 4px auto;
+      width: 95% !important;
+      position: static !important;
+    }
+
+  }
+
   &.week .vxc-title {
     width: 195px;
   }
@@ -72,6 +111,7 @@
     .day-number {
       margin: 0;
       color: #636363;
+      font-weight: 600;
       padding: 5px 8px;
       text-align: right;
     }
@@ -108,6 +148,8 @@
 }
 .vuex-calendar table .day-title {
   text-transform: uppercase;
+  background-color: #F3F3F3;
+  border: 1px solid #EAEAEA;
 }
 .vuex-calendar table td.vxc-time {
   width: 80px;
@@ -134,21 +176,21 @@
 
 /*** === MONTH === ***/
 .vuex-calendar.month table td {
-    width: 244px;
+  width: 244px;
   height: 120px;
   position: relative;
-    vertical-align: top;
+  vertical-align: top;
 }
 a.vxc-read-more {
   left: 50%;
-    bottom: 0;
-    width: 66px;
-    font-size: 13px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    text-overflow: clip;
-    transform: translateX(-50%);
+  bottom: 0;
+  width: 66px;
+  font-size: 13px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  text-overflow: clip;
+  transform: translateX(-50%);
 }
 .vxc-read-more-container {
   top: 100%;
@@ -169,26 +211,28 @@ a.vxc-read-more {
   margin: 0;
   bottom: 0;
   width: 90%;
+  z-index: 10;
   float: none;
   height: 12px;
   display: block;
   cursor: s-resize;
-  background-color: aliceblue;
+  position: absolute;
+  background-color: transparent;
+  transform: translate(-50%, -30%);
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  position: absolute;
-  transform: translate(-50%, -30%);
 }
 .month .vxc-resizer {
-  margin: -2px -4px;
+  z-index: 10;
   width: 16px;
   height: 22px;
   float: right;
   display: block;
   cursor: e-resize;
-  background-color: aliceblue;
+  margin: -2px -4px;
+  background-color: transparent;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -210,7 +254,7 @@ a.vxc-read-more {
 
     .entry {
       top: 5px;
-      border-radius: 5px;
+      border-radius: 3px;
     }
 
   }

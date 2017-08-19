@@ -1,15 +1,15 @@
 <template>
 	<table class="vxc-main-table">
-		<tr class="heading-row day-name-row" v-if="!_isDay()">
-			<th class="entry-row" v-if="!_isMonth()"></th>
-			<th v-for="header in headers" class="day-title" v-html="header.text" v-if="!_isDay()"></th>
-		</tr>
 		<tr class="heading-row">
 			<th colspan="9">
 				<a href="#" class="vxc-nav prev" v-html="this.options.prev_nav" @click.stop.prevent="previousView"></a>
 				<span class="vxc-title" v-html="this.title"></span>
 				<a href="#" class="vxc-nav next" v-html="this.options.next_nav" @click.stop.prevent="nextView"></a>
 			</th>
+		</tr>
+		<tr class="heading-row day-name-row" v-if="!_isDay()">
+			<th class="entry-row" v-if="!_isMonth()"></th>
+			<th v-for="header in headers" class="day-title" v-html="header.text" v-if="!_isDay()"></th>
 		</tr>
 		<tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
       <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:onRangeselect="rangeSelect"></day>
@@ -60,6 +60,10 @@ export default {
   	}
   },
 
+  beforeDestroy: function () {
+    window.removeEventListener('resize', this.handleResize)
+  },
+
 	created() {
 
 		let clone = this.date.clone();
@@ -70,25 +74,16 @@ export default {
     }
 
 		this.title = this.calendarTitle(clone);
+    this._checkOffsets(this.entries);
 
-    var all_entries = [ ];
-    for(let ent in this.entries) {
-      var overlaps = this._getOverlappingEntries(this.entries[ ent ], all_entries);
-      if(this._isMonth()) {
-        this.entries[ ent ].styles.top = (overlaps.length * parseInt(this.entries[ ent ].styles.height)) + (5 * overlaps.length) + 20 + 'px';
-      } else {
-      	var width = 100 / (overlaps.length + 1);
-      	this.entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
-        this.entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
-        for(let e in overlaps) {
-        	overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
-        }
-      }
-      all_entries.push(this.entries[ ent ]);
-    }
+    window.addEventListener('resize', this.handleResize)
 	},
 
 	methods: {
+
+		handleResize() {
+  	  this._checkOffsets(this.entries);
+  	},
 
 	  monthHeader(moment) {
 		  // Header
@@ -151,7 +146,7 @@ export default {
 	  calendarTitle(moment) {
 	    if(this._isMonth()) {
 				let start = moment.startOf('month'), end = moment.endOf('month');
-				return start.format('MMMM') + '<br>' + end.format('YYYY');
+				return '<span class="month-name">' + start.format('MMMM') + '</span>' + ' <span class="year">' + end.format('YYYY') + '</span>';
 	    } else if(this._isWeek()) {
 			  let startWeek = moment.startOf('isoWeek').clone();
 			  let endWeek = moment.endOf('isoWeek').clone();

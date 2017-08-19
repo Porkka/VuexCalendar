@@ -7,7 +7,7 @@
 		v-bind:data-uid="entry.uid"
 		v-bind:style="entry.styles">
 		{{ entry.text }}
-    <p href="#" class="pb-resizer" v-show="entry.has_resizer"
+    <p href="#" class="vxc-resizer" v-show="entry.has_resizer"
 		draggable="true"
     ></p>
 	</div>
@@ -66,7 +66,7 @@ export default {
 
 			this.backupEntry(entry);
 
-			if(e.target.classList.contains('pb-resizer')) {
+			if(e.target.classList.contains('vxc-resizer')) {
 				this.setResizingEvent(true);
 			} else {
 				this.setMovingEvent(true);

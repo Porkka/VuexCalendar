@@ -1,9 +1,9 @@
 <template>
   <div v-bind:id="id" v-bind:class="classObj">
+    <frame v-on:prev="prev" v-on:next="next"></frame>
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
-    <frame v-on:prev="prev" v-on:next="next"></frame>
   </div>
 </template>
 
@@ -63,8 +63,8 @@ export default {
     }
 
     this.options = _.cloneDeep(this.initial_options);
-    this.date = this.options.selected_date ? moment(this.options.selected_date) : moment()  ;
-    this.initial_date = this.options.selected_date ? moment(this.options.selected_date) : moment();
+    this.date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
+    this.initial_date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
 
     // TODO set props from passed options
 
@@ -186,7 +186,7 @@ export default {
         }
 
         // Today class
-        if(this.times[t].format('l') == date_now) {
+        if(this.times[t].format('l') == this.initial_date.format('l')) {
           // console.log(this.times[t].format('l'));
           day.classes['today'] = true;
         }

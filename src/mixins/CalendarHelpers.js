@@ -50,7 +50,7 @@ export default {
 
             let day_diff = Math.abs(split.to.diff(split.from, 'days'));
             day_diff++;
-            let w = (Math.max(day_diff, 1) * 100) - 20;
+            let w = (Math.max(day_diff, 1) * 100) - 10;
             if(day_diff > 1) {
               split.styles.width = 'calc(' + w + '%' + ' + ' + day_diff + 'px)';
             } else {
@@ -61,7 +61,7 @@ export default {
         } else {
           entry.has_resizer = true;
           let day_diff = Math.abs(tmp_end.diff(tmp_start, 'days')) + 1;
-          entry.styles.width = (Math.max(day_diff, 1) * 100) - 20 + '%';
+          entry.styles.width = (Math.max(day_diff, 1) * 100) - 12 + '%';
           entry_objects.push(entry);
         }
       }
@@ -228,7 +228,7 @@ export default {
       entry.origin_guid = '';
       entry.classes = { entry: true },
       entry.attributes = { },
-      entry.styles = { height: '20px' };
+      entry.styles = { height: '25px' };
       entry.text = entry.title;
 
       for(let key in ent) {
@@ -246,6 +246,26 @@ export default {
       }
 
       return entry;
+    },
+
+    _checkOffsets(entries) {
+      var all_entries = [ ];
+      for(let ent in entries) {
+        var overlaps = this._getOverlappingEntries(entries[ ent ], all_entries);
+        if(this._isMonth()) {
+          var styles = _.cloneDeep(entries[ ent ].styles);
+          styles.top = (overlaps.length * parseInt(entries[ ent ].styles.height)) + (4 * overlaps.length) + 25 + 'px';
+          entries[ ent ].styles = styles;
+        } else {
+          var width = 100 / (overlaps.length + 1);
+          entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
+          entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
+          for(let e in overlaps) {
+            overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
+          }
+        }
+        all_entries.push(entries[ ent ]);
+      }
     },
 
 	}
