@@ -33,7 +33,7 @@
   height: 20px;
   text-align: center;
 }
-.vuex-calendar .pb-nav {
+.vuex-calendar .vxc-nav {
   width: 30px;
   height: 40px;
   line-height: 1;
@@ -52,17 +52,18 @@
 
 .vuex-calendar {
 
-  .pb-title {
+  .vxc-title {
     height: 40px;
     width: 130px;
     line-height: 1;
     font-size: 16px;
+    vertical-align: top;
     align-items: center;
     display: inline-flex;
     justify-content: center;
   }
 
-  &.week .pb-title {
+  &.week .vxc-title {
     width: 195px;
   }
 
@@ -76,10 +77,10 @@
     }
 
     /*** ===  MODIFIERS === ***/
-    &.pb-past span:not(.entry) {
+    &.vxc-past span:not(.entry) {
     }
-    &.pb-prev-month span:not(.entry),
-    &.pb-next-month span:not(.entry) {
+    &.vxc-prev-month span:not(.entry),
+    &.vxc-next-month span:not(.entry) {
       opacity: 0.55;
       color: #424242;
       background-color: #D4D2D2;
@@ -108,7 +109,7 @@
 .vuex-calendar table .day-title {
   text-transform: uppercase;
 }
-.vuex-calendar table td.pb-time {
+.vuex-calendar table td.vxc-time {
   width: 80px;
 }
 .vuex-calendar table td {
@@ -138,7 +139,7 @@
   position: relative;
     vertical-align: top;
 }
-a.pb-read-more {
+a.vxc-read-more {
   left: 50%;
     bottom: 0;
     width: 66px;
@@ -149,7 +150,7 @@ a.pb-read-more {
     text-overflow: clip;
     transform: translateX(-50%);
 }
-.pb-read-more-container {
+.vxc-read-more-container {
   top: 100%;
   z-index: 100;
   padding: 14px;
@@ -160,10 +161,10 @@ a.pb-read-more {
   background-color: #FFFFFF;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
-.pb-read-more-container .entry {
+.vxc-read-more-container .entry {
   position: relative !important;
 }
-.week .pb-resizer {
+.week .vxc-resizer {
   left: 50%;
   margin: 0;
   bottom: 0;
@@ -180,7 +181,7 @@ a.pb-read-more {
   position: absolute;
   transform: translate(-50%, -30%);
 }
-.month .pb-resizer {
+.month .vxc-resizer {
   margin: -2px -4px;
   width: 16px;
   height: 22px;
@@ -214,7 +215,27 @@ a.pb-read-more {
 
   }
 
+}
+/*** === /WEEK === ***/
 
+/*** ===  WEEK === ***/
+.vuex-calendar.day {
+
+  table tr td  {
+    padding: 0;
+    height: 40px;
+  
+    &:first-child {
+      width: 50px;
+      text-align: center;
+    }
+
+    .entry {
+      top: 5px;
+      border-radius: 5px;
+    }
+
+  }
 
 }
 /*** === /WEEK === ***/

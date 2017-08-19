@@ -45,6 +45,7 @@ export default {
         if(this._isMonth()) {
           start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
         }
+        console.log(this.entries[ e ].from.format('L, H:mm'), this.day.start.format('L, H:mm'));
         if(start == day_format) {
           entries.push(this.entries[ e ]);
         }

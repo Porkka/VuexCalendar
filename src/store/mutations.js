@@ -6,7 +6,11 @@ export default {
   },
 
   SET_CALENDAR_OPTIONS (state, options) {
-  	state.options = options
+    for(let o in options) {
+      if(state.options.hasOwnProperty(o)) {
+        state.options[ o ] = options[o];
+      }
+    }
   },
 
   SET_CALENDAR_TIME_RANGES (state, time_ranges) {

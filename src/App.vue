@@ -1,6 +1,6 @@
 <template>
   <div>
-    <calendar v-bind:entries="entries" v-bind:options="options"></calendar>
+    <calendar v-bind:entries="entries" v-bind:initial_options="options"></calendar>
   </div>
 </template>
 <style lang="scss">
@@ -36,13 +36,14 @@ export default {
         day_end: '23:59:59',
         prev_nav: '<i class="fa fa-angle-left"></i>',
         next_nav: '<i class="fa fa-angle-right"></i>',
-        type: 'month',
+        type: 'day',
         format: {
           time: 'hh:mm a',
           date: 'L'
         },
         breakpoints: {
-          767: { type: 'week', entry_limit: 2 }
+          767: { type: 'week', entry_limit: 2 },
+          640: { type: 'day', entry_limit: 2 }
         },
         events: { move: true, select: true, resize: true },
         property_names: {
@@ -58,8 +59,8 @@ export default {
     this.entries = [
        {
         title: '0000',
-        start: '2017-07-31 15:00',
-        end: '2017-07-31 18:00',
+        start: '2017-08-19 15:00',
+        end: '2017-08-19 18:00',
         styles: {
           background: 'red',
         }

@@ -7,7 +7,7 @@ export default {
     _createEntryObjects(entries) {
       if(this._isMonth()) {
         var entry_objects = this._createMonthEntryObjects(entries);
-      } else if(this._isWeek()) {
+      } else {
         var entry_objects = this._createWeekEntryObjects(entries);
       }
       return entry_objects;

@@ -30,7 +30,7 @@ export default {
         [ ]
       }
     },
-    options: null
+    initial_options: null
   },
 
   beforeDestroy: function () {
@@ -41,7 +41,7 @@ export default {
     return {
       id: null,
       loading: false,
-      initial_options: null,
+      options: null,
       classObj: {
         'vuex-calendar': true
       },
@@ -51,15 +51,20 @@ export default {
       calendar_entries: [
         // 
       ],
-      date: moment(this.options.selected_date),
-      initial_date: moment(this.options.selected_date),
+      date: null,
+      initial_date: null,
     }
   },
 
   created() {
-    window.addEventListener('resize', this.handleResize)
 
-    this.initial_options = _.cloneDeep(this.options);
+    if(this.initial_options) {
+      this.setOptions(this.initial_options);
+    }
+
+    this.options = _.cloneDeep(this.initial_options);
+    this.date = this.options.selected_date ? moment(this.options.selected_date) : moment()  ;
+    this.initial_date = this.options.selected_date ? moment(this.options.selected_date) : moment();
 
     // TODO set props from passed options
 
@@ -75,11 +80,9 @@ export default {
     this.date.locale(this.options.locale);
     this.setSelectedDate(this.date);
 
-    if(this.options) {
-      this.setOptions(this.options);
-    }
-
     this.render();
+
+    window.addEventListener('resize', this.handleResize)
   },
 
   mounted()  {
@@ -162,6 +165,7 @@ export default {
           end: end,
           start: start,
           entries: [ ],
+          times: [ ],
           classes: {
             'selected': false,
             'past': false, 'today': false,
@@ -206,7 +210,7 @@ export default {
         week = { ranges: [ ] },
         stamp_now = clone.format('X'),
         month_no_now = clone.format('M'),
-        start = clone.isoWeekday(1).clone(),
+        start = this._isWeek() ? clone.isoWeekday(1).clone() : this.date.clone(),
         end = clone.endOf('week').clone(),
         time_format = this.options.format.time,
         date_format = this.options.format.date,
@@ -214,7 +218,8 @@ export default {
         day_start = this._splitTimeStr(this.options.day_start),
         interval = this._splitTimeStr(this.options.hour_interval),
         length = interval.hours * 3600 + interval.minutes * 60 + interval.seconds,
-        end_day = 7, start_day = 0;
+        end_day = this._isWeek() ? 7 : 1,
+        start_day = 0;
 
       while(start_day < end_day) {
 
@@ -232,8 +237,8 @@ export default {
           entries: [ ],
           classes: {
             'selected': false,
-            'pb-past': false, 'pb-today': false, 'pb-future': false,
-            'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
+            'vxc-past': false, 'vxc-today': false, 'vxc-future': false,
+            'vxc-prev-month': false, 'vxc-next-month': false, 'vxc-skeleton date-row': true,
           },
           sanitized: tmp.format('L'),
           timestamp: tmp.format('X'),
@@ -244,9 +249,9 @@ export default {
 
         // Prev and next month classes
         if(tmp.format('M') < month_no_now) { 
-          day.classes['pb-prev-month'] = true;
+          day.classes['vxc-prev-month'] = true;
         } else if(tmp.format('M') > month_no_now) {
-          day.classes['pb-next-month'] = true;
+          day.classes['vxc-next-month'] = true;
         }
 
         for(let t in this.times) {
@@ -266,8 +271,8 @@ export default {
             sanitized: tmp.format(date_format + ', ' + time_format) + ' - ' + tmp_end.format(date_format + ', ' + time_format),
             classes: {
               'selected': false,
-              'pb-past': false, 'pb-today': false, 'pb-future': false,
-              'pb-prev-month': false, 'pb-next-month': false, 'pb-skeleton date-row': true,
+              'vxc-past': false, 'vxc-today': false, 'vxc-future': false,
+              'vxc-prev-month': false, 'vxc-next-month': false, 'vxc-skeleton date-row': true,
             },
           };
 
@@ -287,6 +292,8 @@ export default {
         this.date.subtract(1, 'months').clone();
       } else if(this._isWeek()) {
         this.date.subtract(7, 'days').clone();
+      } else if(this._isDay()) {
+        this.date.subtract(1, 'days').clone();
       }
 
       this.options.selected_date = this._longFormat(this.date);
@@ -309,6 +316,8 @@ export default {
         this.date.add(1, 'months').clone()
       } else if(this._isWeek()) {
         this.date.add(7, 'days').clone()
+      } else if(this._isDay()) {
+        this.date.add(1, 'days').clone();
       }
       this.options.selected_date = this._longFormat(this.date);
       this.times = this._createTimes();
@@ -354,10 +363,10 @@ export default {
       // If we got min_width => Set new options and rerender the calendar
       if(min_width) {
           var options = this._merge_options(this.options, this.options.breakpoints[ w ]);
-          console.log(options);
       } else {
           var options = this.initial_options;
       }
+      this.options = options;
       this.setOptions(options);
       this.render();
     },
