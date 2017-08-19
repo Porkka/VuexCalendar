@@ -21,8 +21,10 @@ export default {
       fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
     }, 
     hour_interval: '00:60:00',
-    onEntryResizeConfirm: () => { return confirm('Are you sure you want to change this entry\'s length?'); },
-    onEntryMoveConfirm: () => { return confirm('Are you sure you want to change this entry\'s position?'); }
+    onEntryResize: () => { return confirm('Are you sure you want to change this entry\'s length?'); },
+    onEntryMove: () => { return confirm('Are you sure you want to change this entry\'s position?'); },
+    onEntryClick: (entry) => { console.log(entry, 'Entry clicked'); },
+    onRangeSelect: (start, end) => { console.log(start, end, 'Range select'); },
   },
 
   time_ranges: [ ],

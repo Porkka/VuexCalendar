@@ -37,29 +37,36 @@
   width: 30px;
   height: 40px;
   line-height: 1;
-  font-size: 24px;
+  font-size: 23px;
   align-items: center;
   display: inline-flex;
   text-decoration: none;
   justify-content: center;
+
+  &.prev {
+  }
+  &.next {
+  }
+
 }
-.vuex-calendar .pb-nav.prev {
-}
-.vuex-calendar .pb-nav.next {
-}
+
 .vuex-calendar {
 
   .pb-title {
     height: 40px;
     width: 130px;
     line-height: 1;
+    font-size: 16px;
     align-items: center;
     display: inline-flex;
     justify-content: center;
   }
 
-  table td {
+  &.week .pb-title {
+    width: 195px;
+  }
 
+  table td {
 
     .day-number {
       margin: 0;
@@ -77,17 +84,24 @@
       color: #424242;
       background-color: #D4D2D2;
     }
-    &.past {
-      background-color: #F3F3F3;
-    }
     &.today {
       background-color: #FFF2DC;
     }
+    &.prev-month,
     &.next-month {
       background-color: #F3F3F3;
     }
+    &.selected {
+      background-color: #B2F5FF;
+    }
     /*** === /MODIFIERS === ***/
+
   }
+
+  /*** === WEEK === ***/
+
+  /*** === /WEEK === ***/
+
 }
 .vuex-calendar table .day-name-row {
 }
@@ -107,9 +121,6 @@
   -moz-user-select: none;     /* Firefox all */
   -ms-user-select: none;      /* IE 10+ */
   user-select: none;          /* Likely future */
-}
-.vuex-calendar td.selected {
-  background-color: #B2F5FF;
 }
 .vuex-calendar table td span {
   display: block;

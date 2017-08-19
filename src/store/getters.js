@@ -40,6 +40,9 @@ export default {
 	time_ranges: (state) => {
 		return state.time_ranges
 	},
+	week: (state) => {
+		return state.week
+	},
 
 	entryByGuid: (state) => {
 		return function (guid) {

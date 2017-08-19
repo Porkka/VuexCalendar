@@ -12,6 +12,7 @@
     <entry v-for="(entry, k) in day_entries" 
     v-bind:key="k" 
     v-on:draggedOver="onDraggedOverEntry"
+    v-on:entryClick="onEntryClicked"
     v-bind:entry="entry"></entry>
 </td>
 </template>
@@ -90,21 +91,25 @@ export default {
     onDrop(e) {
       var self = this;
       if(self.resizing) {
-        if(self.options.onEntryResizeConfirm()) {
+        if(self.options.onEntryResize()) {
           self.resetEvents();
         } else {
           self.removeActiveEntries();
           self.restoreEntries();
         }
       } else if(self.moving) {
-        if(self.options.onEntryMoveConfirm()) {
+        if(self.options.onEntryMove()) {
           self.resetEvents();
         } else {
           self.removeActiveEntries();
           self.restoreEntries();
         }
       } else if(this.selecting) {
-        this.$emit('onRangeselect', this.drag_event_origin_date, this.drag_event_on_date);
+        if(typeof(this.options.onRangeSelect) == 'function') {
+          this.options.onRangeSelect(this.drag_event_origin_date, this.drag_event_on_date);
+        } else {
+          console.log('VuexCalendar: onRangeSelect callback is not a function.');
+        }
         self.resetEvents();
         return;
       }
@@ -182,6 +187,14 @@ export default {
             this._doEntryResize();
           }
         }
+      }
+    },
+
+    onEntryClicked(entry) {
+      if(typeof(this.options.onEntryClick) == 'function') {
+        this.options.onEntryClick(entry);
+      } else {
+        console.log('VuexCalendar: onEntryClick callback is not a function.');
       }
     },
 
@@ -283,7 +296,6 @@ export default {
       if(!this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
-
       this.selectDayRange({
         start: this.drag_event_origin_date.start,
         end: this.drag_event_on_date.end

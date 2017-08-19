@@ -84,6 +84,7 @@ export default {
     },
 
 	  onClick() {
+	  	this.$emit('entryClick', this.entry);
 	  },
 
 	  onMousedown(e) {

@@ -3,7 +3,7 @@
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
-    <frame v-on:prev="prev" v-on:next="next" v-on:onRangeselect="rangeSelect"></frame>
+    <frame v-on:prev="prev" v-on:next="next"></frame>
   </div>
 </template>
 
@@ -13,6 +13,7 @@ import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
 
+var _ = require('lodash');
 var moment = require('moment');
 
 export default {
@@ -32,10 +33,15 @@ export default {
     options: null
   },
 
+  beforeDestroy: function () {
+    window.removeEventListener('resize', this.handleResize)
+  },
+
   data() {
     return {
       id: null,
       loading: false,
+      initial_options: null,
       classObj: {
         'vuex-calendar': true
       },
@@ -46,10 +52,14 @@ export default {
         // 
       ],
       date: moment(this.options.selected_date),
+      initial_date: moment(this.options.selected_date),
     }
   },
 
   created() {
+    window.addEventListener('resize', this.handleResize)
+
+    this.initial_options = _.cloneDeep(this.options);
 
     // TODO set props from passed options
 
@@ -69,18 +79,7 @@ export default {
       this.setOptions(this.options);
     }
 
-    let entry_objects = this._createEntryObjects(this.entries);
-
-    this.times = this._createTimes();
-    if(this._isMonth()) {
-      let calendar_dates = this._createMonth();
-      this.setEntries(entry_objects);
-      this.setTimeRanges(calendar_dates);
-    } else {
-      let calendar_dates = this._createWeek();
-      this.setEntries(entry_objects);
-      this.setTimeRanges(calendar_dates);
-    }
+    this.render();
   },
 
   mounted()  {
@@ -91,6 +90,10 @@ export default {
     ...mapActions([
       'setSelectedDate', 'setOptions', 'setTimeRanges', 'setEntries'
     ]),
+
+    handleResize() {
+      this._checkBreakpoints();
+    },
 
     _createTimes() {
 
@@ -137,14 +140,10 @@ export default {
     },
 
     _createMonth() {
-
       var date_now = this.date.format('l'),
         stamp_now = this.date.format('X'),
         month_no_now = this.date.format('M'),
-        tmp = this.date.clone(),
-        week = { ranges: [ ] },
-        weeks = [ ];
-
+        week = { ranges: [ ] }, weeks = [ ];
       for(var t in this.times) {
 
         if(t % 7 == 0 && t!=0) { // Row every 7th
@@ -184,6 +183,7 @@ export default {
 
         // Today class
         if(this.times[t].format('l') == date_now) {
+          // console.log(this.times[t].format('l'));
           day.classes['today'] = true;
         }
 
@@ -323,11 +323,6 @@ export default {
       this.loading = false;
     },
 
-    rangeSelect(start, end) {
-      console.log(start, end);
-    },
-
-
 /*** HELPERS ***/
     _getOverlappingEntries(entry, entry_objects) {
       return entry_objects.filter(function(item) {
@@ -343,7 +338,43 @@ export default {
           );
         }
       });
-    }
+    },
+
+    _checkBreakpoints() {
+      // Hunt for breakpoints
+      var min_width = null;
+      var cw = window.outerWidth;
+      for(var w in this.options.breakpoints) {
+          w = parseInt(w);
+          if(( cw <= w && min_width == null ) || ( w < min_width && min_width != null )) {
+              min_width = w;
+          }
+      }
+
+      // If we got min_width => Set new options and rerender the calendar
+      if(min_width) {
+          var options = this._merge_options(this.options, this.options.breakpoints[ w ]);
+          console.log(options);
+      } else {
+          var options = this.initial_options;
+      }
+      this.setOptions(options);
+      this.render();
+    },
+
+    render() {
+      let entry_objects = this._createEntryObjects(this.entries);
+      this.times = this._createTimes();
+      if(this._isMonth()) {
+        let calendar_dates = this._createMonth();
+        this.setEntries(entry_objects);
+        this.setTimeRanges(calendar_dates);
+      } else {
+        let calendar_dates = this._createWeek();
+        this.setEntries(entry_objects);
+        this.setTimeRanges(calendar_dates);
+      }
+    },
 
   } // Methods
 }

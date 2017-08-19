@@ -10,6 +10,15 @@
 <script>
 import { mapActions, mapGetters } from 'vuex'
 import calendar from './components/calendar/Calendar'
+/**** 
+== Callback ==
+
+onEntryResize
+onEntryMove
+onEntryClick
+onRangeSelect
+
+****/
 export default {
 
   components: {
@@ -21,7 +30,7 @@ export default {
       entries: [ ],
       options: {
         theme: 'original',
-        locale: 'en',
+        locale: 'fi',
         entry_limit: 3,
         day_start: '07:00',
         day_end: '23:59:59',
@@ -32,9 +41,8 @@ export default {
           time: 'hh:mm a',
           date: 'L'
         },
-        selected_date: '2017-08-01 10:00',
         breakpoints: {
-          767: { type: 'day', entry_limit: 2 }
+          767: { type: 'week', entry_limit: 2 }
         },
         events: { move: true, select: true, resize: true },
         property_names: {
@@ -42,8 +50,6 @@ export default {
           fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
         },
         hour_interval: '01:00:00',
-        onEntryResizeConfirm: () => { return confirm('Are you sure you want to change this entry\'s length?'); },
-        onEntryMoveConfirm: () => { return confirm('Are you sure you want to change this entry\'s position?'); }
       }
     }
   },
