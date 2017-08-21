@@ -83,8 +83,8 @@ export default {
       console.log('Entry: Drop');
     },
 
-	  onClick() {
-	  	this.$emit('entryClick', this.entry);
+	  onClick(e) {
+	  	this.$emit('entryClick', this.entry, e.target);
 	  },
 
 	  onMousedown(e) {

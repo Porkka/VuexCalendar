@@ -8,17 +8,34 @@
     v-bind:class="day.classes"
     v-bind:data-sanitized="day.sanitized"
     v-bind:data-timestamp="day.timestamp">
+
     <span class="day-number" v-if="_isMonth()">{{ day.text }}</span>
+
     <entry v-for="(entry, k) in day_entries" 
+    v-if="(k+1)<= options.entry_limit"
     v-bind:key="k" 
     v-on:draggedOver="onDraggedOverEntry"
     v-on:entryClick="onEntryClicked"
     v-bind:entry="entry"></entry>
+
+    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent="popup_open = true" class="entry-popup-toggle"><i class="fa fa-plus"></i></a>
+
+    <entryPopup v-if="day_entries.length > options.entry_limit && popup_open">
+      <div class="text-center" style="border-bottom: 2px solid #636363">All entries<br>{{ day.sanitized }}</div>
+      <entry v-for="(entry, k) in day_entries" 
+      v-bind:key="k" 
+      v-on:draggedOver="onDraggedOverEntry"
+      v-on:entryClick="onEntryClicked"
+      v-bind:entry="entry"></entry>
+      <a href="#" v-on:click.prevent="popup_open = false" class="entry-popup-close"><i class="fa fa-times"></i></a>
+    </entryPopup>
+
 </td>
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import entry from './Entry'
+import entryPopup from './EntryPopup'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
 var moment = require('moment');
@@ -26,7 +43,7 @@ var _ = require('lodash');
 export default {
 
   components: {
-    entry
+    entry, entryPopup
   },
 
   mixins: [ helpers, calendar_helpers ],
@@ -45,7 +62,6 @@ export default {
         if(this._isMonth()) {
           start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
         }
-        console.log(this.entries[ e ].from.format('L, H:mm'), this.day.start.format('L, H:mm'));
         if(start == day_format) {
           entries.push(this.entries[ e ]);
         }
@@ -60,7 +76,7 @@ export default {
 
   data() {
     return {
-      timer: null
+      popup_open: false,
     }
   },
 
@@ -116,24 +132,7 @@ export default {
       }
 
       var entries = _.sortBy(self.entries, function(o) { return parseInt(o.origin_from.format('X')); });
-      // this.entries = ent;
-      var all_entries = [ ];
-      for(let ent in entries) {
-        var overlaps = self._getOverlappingEntries(entries[ ent ], all_entries);
-        if(self._isMonth()) {
-          var styles = _.cloneDeep(entries[ ent ].styles);
-          styles.top = (overlaps.length * parseInt(entries[ ent ].styles.height)) + (5 * overlaps.length) + 20 + 'px';
-          entries[ ent ].styles = styles;
-        } else {
-          var width = 100 / (overlaps.length + 1);
-          entries[ ent ].styles.left = 10 + (20 * (overlaps.length)) + 'px';
-          entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
-          for(let e in overlaps) {
-            overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
-          }
-        }
-        all_entries.push(entries[ ent ]);
-      }
+      this._checkOffsets(entries);
     },
 
     onClick(e) {
@@ -191,9 +190,9 @@ export default {
       }
     },
 
-    onEntryClicked(entry) {
+    onEntryClicked(entry, node) {
       if(typeof(this.options.onEntryClick) == 'function') {
-        this.options.onEntryClick(entry);
+        this.options.onEntryClick(entry, node);
       } else {
         console.log('VuexCalendar: onEntryClick callback is not a function.');
       }
