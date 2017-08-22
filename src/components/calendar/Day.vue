@@ -12,22 +12,24 @@
     <span class="day-number" v-if="_isMonth()">{{ day.text }}</span>
 
     <entry v-for="(entry, k) in day_entries" 
-    v-if="(k+1)<= options.entry_limit"
+    v-if="!entry.overflow"
     v-bind:key="k" 
     v-on:draggedOver="onDraggedOverEntry"
     v-on:entryClick="onEntryClicked"
     v-bind:entry="entry"></entry>
 
-    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent="popup_open = true" class="entry-popup-toggle"><i class="fa fa-plus"></i></a>
+    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle"><i class="fa fa-plus"></i></a>
 
     <entryPopup v-if="day_entries.length > options.entry_limit && popup_open">
       <div class="text-center" style="border-bottom: 2px solid #636363">All entries<br>{{ day.sanitized }}</div>
+  
       <entry v-for="(entry, k) in day_entries" 
       v-bind:key="k" 
       v-on:draggedOver="onDraggedOverEntry"
       v-on:entryClick="onEntryClicked"
       v-bind:entry="entry"></entry>
-      <a href="#" v-on:click.prevent="popup_open = false" class="entry-popup-close"><i class="fa fa-times"></i></a>
+
+      <a href="#" v-on:click.prevent.stop="popup_open = false" class="entry-popup-close"><i class="fa fa-times"></i></a>
     </entryPopup>
 
 </td>
@@ -86,8 +88,9 @@ export default {
   methods: {
 
     ...mapActions([
-      'activateDay', 'activateEntry', 'setTargetDay', 'setDragEventOnDate', 'resetEvents', 'setSelectingEvent', 'setDragEventEntry', 'selectDayRange',
-      'removeActiveEntries', 'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
+      'activateDay', 'activateEntry', 'sortEntries', 'setTargetDay', 'setDragEventOnDate', 
+      'resetEvents', 'setSelectingEvent', 'setDragEventEntry', 'selectDayRange', 'removeActiveEntries',
+      'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
     ]),
 
 
@@ -97,7 +100,7 @@ export default {
     onDragstart(e) {
 
       let img = new Image();
-      img.src = './src/assets/ghost.png';
+      img.src = './src/assets/image/ghost.png';
       e.dataTransfer.setDragImage(img, 10, 10);
       this.setSelectingEvent(true);
 
@@ -131,8 +134,9 @@ export default {
         return;
       }
 
-      var entries = _.sortBy(self.entries, function(o) { return parseInt(o.origin_from.format('X')); });
-      this._checkOffsets(entries);
+      this.sortEntries();
+      this._checkOffsets(this.entries);
+      // this.setOverflowEntries();
     },
 
     onClick(e) {
@@ -208,13 +212,12 @@ export default {
         return;
       }
 
-      var entry = this.drag_event_entry,
+      var entry = _.cloneDeep(this.drag_event_entry),
       old_start = entry.origin_from,
       day_start = this._splitTimeStr(this.options.day_start),
       day_end = this._splitTimeStr(this.options.day_end),
       start = this.drag_event_on_date.start.clone(),
       diff = moment.duration(start.diff(old_start)).asMilliseconds();
-
       let end = entry.origin_to.clone().add(diff);
 
       if(this._isMonth()) {
@@ -231,14 +234,12 @@ export default {
       entry.start = this._longFormat(start);
       entry.from = start;
       entry.to = end;
-
       let entries = this._createEntryObjects([ entry ]);
 
       this.removeActiveEntries();
       for(let e in entries) {
         this.activateEntry(entries[ e ]);
       }
-
       this.appendEntries(entries);
     },
 
@@ -252,8 +253,8 @@ export default {
       }
 
       var self = this;
-      clearTimeout(this.timer);
-      this.timer = setTimeout(function() {
+      // clearTimeout(this.timer);
+      // this.timer = setTimeout(function() {
         let entry = _.cloneDeep(self.drag_event_entry),
         guid = entry.guid,
         old_start = moment(entry.start),
@@ -286,7 +287,7 @@ export default {
         }
 
         self.appendEntries(entries);
-      }, 400);
+      // }, 400);
     },
 
     _doDaySelect() {

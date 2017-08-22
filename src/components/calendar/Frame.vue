@@ -75,6 +75,7 @@ export default {
 
 		this.title = this.calendarTitle(clone);
     this._checkOffsets(this.entries);
+    // this.setOverflowEntries();
 
     window.addEventListener('resize', this.handleResize)
 	},

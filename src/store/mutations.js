@@ -27,6 +27,12 @@ export default {
     }
   },
 
+  SORT_ENTRIES (state) {
+    var a = function(o) { return parseInt(o.from.format('X')); };
+    var b = function(o) { return parseInt( o.from.format('X') - o.to.format('X') ); }
+    state.entries = _.sortBy(state.entries, [ a, b ], [ 'asc', 'desc' ]);
+  },
+
   SELECT_CALENDAR_RANGE (state, range) {
     let start = range.start.format('X'), end = range.end.format('X');
     if(state.options.type == 'month') {
@@ -107,7 +113,6 @@ export default {
   },
 
 
-
   DRAG_EVENT_ENTRY (state, entry) {
     state.event_data.drag.entry = entry
   },
@@ -148,6 +153,8 @@ export default {
         }
       }
     }
+
+    state.events.selecting = state.events.selecting = state.events.moving = false;
 
     state.event_data.drag = {
       entry: null,

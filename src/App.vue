@@ -52,13 +52,21 @@ export default {
         },
         hour_interval: '01:00:00',
         onEntryClick: (entry, node) => {
+
+
+          var old = document.getElementById('entry-overview');
+          if(old) {
+            old.remove();
+          }
+
           var parent = node.parentElement;
           var entry_overview = document.createElement('div');
-          entry_overview.setAttribute('class', 'entry-overview');
+
+          entry_overview.setAttribute('id', 'entry-overview');
           entry_overview.style.zIndex = '11';
           entry_overview.style.height = '100px';
           entry_overview.style.padding = '5px 10px';
-          entry_overview.style.width = '400px';
+          entry_overview.style.width = '300px';
           entry_overview.style.border = '1px solid #DEDEDE';
           entry_overview.style.background = '#FFFFFF';
           entry_overview.style.position = 'absolute';
@@ -70,9 +78,39 @@ export default {
           var close = document.createElement('a');
           close.innerHTML = '<i class="fa fa-times"></i>';
           close.style.float = 'right';
+          close.setAttribute('href', '#');
           close.setAttribute('class', 'entry-overview-close');
+          close.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            entry_overview.remove();
+          });
 
+          var name = document.createElement('p');
+          name.innerHTML = entry.title;
+          var time = document.createElement('p');
+          time.innerHTML = entry.start + ' - ' + entry.end;
+
+          var toolbox = document.createElement('div');
+          toolbox.setAttribute('class', 'tootlbox');
+          toolbox.style.textAlign = 'right';
+          var edit = document.createElement('a');
+          edit.style.display = 'inline-block';
+          edit.style.margin = '0 5px';
+          edit.setAttribute('href', '#');
+          edit.innerHTML = '<i class="fa fa-pencil"></i>';
+          var remove = document.createElement('a');
+          remove.setAttribute('href', '#');
+          remove.style.display = 'inline-block';
+          remove.style.margin = '0 5px';
+          remove.innerHTML = '<i class="fa fa-trash"></i>';
+
+          toolbox.appendChild(edit);
+          toolbox.appendChild(remove);
           entry_overview.appendChild(close);
+          entry_overview.appendChild(name);
+          entry_overview.appendChild(time);
+          entry_overview.appendChild(toolbox);
           parent.appendChild(entry_overview);
 
         }

@@ -18,9 +18,7 @@ export default {
       day_end = this._splitTimeStr(this.options.day_end),
       entry_objects = [ ];
       for(let ent in entries) {
-
         let entry = this._initEntryObject(entries[ ent ]);
-
         let tmp_start = entry.from.clone(),
         tmp_end = entry.to.clone();
 
@@ -202,10 +200,21 @@ export default {
     },
 
     _getOverlappingEntries(entry, entry_objects) {
+      let self = this;
+      let clone = _.cloneDeep(entry);
+      clone.from.hours(0).minutes(0).seconds(0);
+      clone.to.hours(0).minutes(0).seconds(0);
       let entries = entry_objects.filter(function(item) {
         if(item.guid != entry.guid) { // Skip if entry itself
-          let istart = parseInt(item.from.format('X')), iend = parseInt(item.to.format('X')),
-          estart = parseInt(entry.from.format('X')), eend = parseInt(entry.to.format('X'));
+          if(self._isMonth()) {
+            var start = item.from.clone().hours(0).minutes(0).seconds(0);
+            var end = item.to.clone().hours(0).minutes(0).seconds(0);
+          } else {
+            var start = item.from;
+            var end = item.to;
+          }
+          let istart = parseInt(start.format('X')), iend = parseInt(end.format('X')),
+          estart = parseInt(clone.from.format('X')), eend = parseInt(clone.to.format('X'));
           return (
             // Check if overlapping in any way
             ( istart >= estart && iend <= eend ) || // [ --- ]
@@ -218,14 +227,31 @@ export default {
       return entries;
     },
 
+    _getOverlappingRange(range_start, range_end, entry_objects) {
+      let self = this;
+      let entries = entry_objects.filter(function(item) {
+          let istart = parseInt(item.from.format('X')), iend = parseInt(item.to.format('X')),
+          estart = parseInt(range_start.format('X')), eend = parseInt(range_end.format('X'));
+          return (
+            // Check if overlapping in any way
+            ( istart >= estart && iend <= eend ) || // [ --- ]
+            ( istart <= estart && iend > estart) || // -[ -- ]
+            ( istart <= estart && iend >= eend ) || // --[ --- ]--
+            ( istart <= eend && iend >= eend ) // [ -- ]-
+          );
+      });
+      return entries;
+    },
+
     _initEntryObject(ent) {
-      let entry = _.clone(ent);
+      let entry = _.cloneDeep(ent);
     
       entry.guid = this._guid();
       entry.origin_from = entry.from = moment(entry.start).locale(this.options.locale);
       entry.origin_to = entry.to = moment(entry.end).locale(this.options.locale);
       entry.has_resizer = false;
       entry.origin_guid = '';
+      entry.overflow = false;
       entry.classes = { entry: true },
       entry.attributes = { },
       entry.styles = { height: '25px' };
@@ -244,7 +270,6 @@ export default {
           entry.attributes[ 'data-' + key ] = ent[ key ];
         }
       }
-
       return entry;
     },
 
@@ -264,9 +289,29 @@ export default {
             overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
           }
         }
+
+        if(overlaps.length > this.options.entry_limit) {
+          entries[ent].overflow = true;
+        } else {
+          entries[ent].overflow = false;
+        }
+
         all_entries.push(entries[ ent ]);
       }
     },
+
+    // setOverflowEntries() {
+    //   var all_entries = [ ];
+    //   for(let ent in this.entries) {
+    //     var overlaps = this._getOverlappingEntries(this.entries[ ent ], all_entries);
+    //     if(overlaps.length > this.options.entry_limit) {
+    //       this.entries[ent].overflow = true;
+    //     } else {
+    //       this.entries[ent].overflow = false;
+    //     }
+    //     all_entries.push(this.entries[ent]);
+    //   }
+    // },
 
 	}
 

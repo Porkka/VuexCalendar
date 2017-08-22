@@ -55,7 +55,7 @@ export default {
 
 		onDragstart(e) {
 			let img = new Image();
-			img.src = './src/assets/ghost.png';
+			img.src = './src/assets/image/ghost.png';
 			e.dataTransfer.setDragImage(img, 10, 10);
 
 			let entry = this.originEntry(this.entry);
