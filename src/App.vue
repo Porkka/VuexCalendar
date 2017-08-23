@@ -1,6 +1,6 @@
 <template>
   <div>
-    <calendar v-bind:entries="entries" v-bind:initial_options="options"></calendar>
+    <calendar v-bind:calendar_entries="calendar_entries" v-bind:initial_options="options"></calendar>
   </div>
 </template>
 <style lang="scss">
@@ -25,9 +25,15 @@ export default {
     calendar
   },
 
+  computed: {
+    ...mapGetters([
+      'entries'
+    ])
+  },
+
   data() {
     return {
-      entries: [ ],
+      calendar_entries: [ ],
       options: {
         theme: 'original',
         locale: 'fi',
@@ -51,8 +57,21 @@ export default {
           fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
         },
         hour_interval: '01:00:00',
+        onRangeSelect: (start, end) => {
+          var entries = this.entries;
+          entries.push({
+            title: 'Untitled',
+            start: start.start.format('YYYY-MM-DD HH:mm'),
+            end: end.end.format('YYYY-MM-DD HH:mm'),
+            styles: {
+              color: '#FFFFFF',
+              background: 'rgba(255, 155, 0, 0.68)',
+            }
+          });
+          console.log('Added', start, end);
+          this.calendar_entries = entries;
+        },
         onEntryClick: (entry, node) => {
-
 
           var old = document.getElementById('entry-overview');
           if(old) {
@@ -63,17 +82,7 @@ export default {
           var entry_overview = document.createElement('div');
 
           entry_overview.setAttribute('id', 'entry-overview');
-          entry_overview.style.zIndex = '11';
-          entry_overview.style.height = '100px';
-          entry_overview.style.padding = '5px 10px';
-          entry_overview.style.width = '300px';
-          entry_overview.style.border = '1px solid #DEDEDE';
-          entry_overview.style.background = '#FFFFFF';
-          entry_overview.style.position = 'absolute';
-          entry_overview.style.boxShadow = '0 2px 4px -1px rgba(0, 0, 0, 0.25)';
           entry_overview.style.top = (node.offsetTop + 30) + 'px';
-          entry_overview.style.transform = 'translateX(-50%)';
-          entry_overview.style.left = '50%';
 
           var close = document.createElement('a');
           close.innerHTML = '<i class="fa fa-times"></i>';
@@ -119,7 +128,7 @@ export default {
   },
 
   created() {
-    this.entries = [
+    this.calendar_entries = [
        {
         title: 'Long ass fucking name',
         start: '2017-08-19 15:00',
@@ -157,6 +166,14 @@ export default {
         title: 'Drink beer',
         start: '2017-08-08 15:00',
         end: '2017-08-08 18:00',
+        styles: {
+          background: 'rgba(0, 100, 200, 0.68)',
+        }
+      },
+       {
+        title: 'Drink beer',
+        start: '2017-08-18 07:00',
+        end: '2017-08-20 22:59:29',
         styles: {
           background: 'rgba(0, 100, 200, 0.68)',
         }

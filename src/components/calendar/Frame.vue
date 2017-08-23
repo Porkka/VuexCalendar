@@ -49,6 +49,8 @@ export default {
 	    } else if(this._isWeek()) {
 		    this.headers = this.weekHeader(clone);
 	    }
+			this.sortEntries();
+	    this._checkOffsets(this.entries);
   	}
 
   },
@@ -74,13 +76,18 @@ export default {
     }
 
 		this.title = this.calendarTitle(clone);
+
+		this.sortEntries();
     this._checkOffsets(this.entries);
-    // this.setOverflowEntries();
 
     window.addEventListener('resize', this.handleResize)
 	},
 
 	methods: {
+
+		...mapActions([
+			 'sortEntries'
+		]),
 
 		handleResize() {
   	  this._checkOffsets(this.entries);

@@ -289,7 +289,6 @@ export default {
             overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
           }
         }
-
         if(overlaps.length > this.options.entry_limit) {
           entries[ent].overflow = true;
         } else {
@@ -298,6 +297,7 @@ export default {
 
         all_entries.push(entries[ ent ]);
       }
+      return entries;
     },
 
     // setOverflowEntries() {

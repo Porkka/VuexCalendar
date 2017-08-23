@@ -25,12 +25,19 @@ export default {
   mixins: [ helpers, calendar_helpers ],
 
   props: {
-    entries: {
+    ...mapGetters([ 'entries' ]),
+    calendar_entries: {
       default: function() {
         [ ]
       }
     },
     initial_options: null
+  },
+
+  watch: {
+    calendar_entries: function() {
+      this.render();
+    }
   },
 
   beforeDestroy: function () {
@@ -48,9 +55,9 @@ export default {
       times: [
 
       ],
-      calendar_entries: [
-        // 
-      ],
+      // calendar_entries: [
+      //   // 
+      // ],
       date: null,
       initial_date: null,
     }
@@ -372,7 +379,7 @@ export default {
     },
 
     render() {
-      let entry_objects = this._createEntryObjects(this.entries);
+      let entry_objects = this._createEntryObjects(this.calendar_entries);
       this.times = this._createTimes();
       if(this._isMonth()) {
         let calendar_dates = this._createMonth();
