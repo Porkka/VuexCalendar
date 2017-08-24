@@ -68,10 +68,10 @@ export default {
               background: 'rgba(255, 155, 0, 0.68)',
             }
           });
-          console.log('Added', start, end);
           this.calendar_entries = entries;
         },
         onEntryClick: (entry, node) => {
+          var self = this;
 
           var old = document.getElementById('entry-overview');
           if(old) {
@@ -106,13 +106,19 @@ export default {
           var edit = document.createElement('a');
           edit.style.display = 'inline-block';
           edit.style.margin = '0 5px';
-          edit.setAttribute('href', '#');
+          edit.setAttribute('href', entry.guid);
           edit.innerHTML = '<i class="fa fa-pencil"></i>';
           var remove = document.createElement('a');
-          remove.setAttribute('href', '#');
+          remove.setAttribute('href', entry.guid);
           remove.style.display = 'inline-block';
           remove.style.margin = '0 5px';
           remove.innerHTML = '<i class="fa fa-trash"></i>';
+          remove.addEventListener('click', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            var guid = this.getAttribute('href');
+            console.log(self);
+            self.$dispatch('add-entry');
+          });
 
           toolbox.appendChild(edit);
           toolbox.appendChild(remove);
@@ -121,8 +127,8 @@ export default {
           entry_overview.appendChild(time);
           entry_overview.appendChild(toolbox);
           parent.appendChild(entry_overview);
-
         }
+
       }
     }
   },
@@ -180,9 +186,6 @@ export default {
        },
     ];
   },
-
-  methods: {
-  }
 
 }
 </script>

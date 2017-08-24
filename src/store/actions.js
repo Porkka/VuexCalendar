@@ -44,6 +44,10 @@ export default {
 		commit('REMOVE_ACTIVE_ENTRIES')
 	},
 
+	deleteEntryByGuid: ({ commit }, guid) => {
+		// commit('DELETE_ENTRY_BY_GUID')
+	},
+
 	activateDay: ({ commit }, entry) => {
 		commit('ACTIVATE_DAY', entry)
 	},
@@ -63,15 +67,19 @@ export default {
 	setMovingEvent: ({ commit }, bool) => {
 		commit('SET_MOVING_EVENT', bool)
 	},
+
 	setSelectingEvent: ({ commit }, bool) => {
 		commit('SET_SELECTING_EVENT', bool)
 	},
+
 	setResizingEvent: ({ commit }, bool) => {
 		commit('SET_RESIZING_EVENT', bool)
 	},
+
 	resetEvents: ({ commit }) => {
 		commit('RESET_EVENTS')
 	},
+
 	resetActiveEntries: ({ commit }) => {
 		commit('RESET_ACTIVE_ENTRIES')
 	}

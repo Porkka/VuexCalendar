@@ -18,7 +18,9 @@
     v-on:entryClick="onEntryClicked"
     v-bind:entry="entry"></entry>
 
-    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle"><i class="fa fa-plus"></i></a>
+    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle">
+      <i class="fa fa-plus"></i>
+    </a>
 
     <entryPopup v-if="day_entries.length > options.entry_limit && popup_open">
       <div class="text-center" style="border-bottom: 2px solid #636363">All entries<br>{{ day.sanitized }}</div>
@@ -126,7 +128,11 @@ export default {
         }
       } else if(this.selecting) {
         if(typeof(this.options.onRangeSelect) == 'function') {
-          this.options.onRangeSelect(this.drag_event_origin_date, this.drag_event_on_date);
+          if(this.drag_event_origin_date.start.format('X') < this.drag_event_on_date.end.format('X')) {
+            this.options.onRangeSelect(this.drag_event_origin_date, this.drag_event_on_date);
+          } else {
+            this.options.onRangeSelect(this.drag_event_on_date, this.drag_event_origin_date);
+          }
         } else {
           console.log('VuexCalendar: onRangeSelect callback is not a function.');
         }
@@ -136,7 +142,6 @@ export default {
 
       this.sortEntries();
       this._checkOffsets(this.entries);
-      // this.setOverflowEntries();
     },
 
     onClick(e) {
@@ -297,10 +302,18 @@ export default {
       if(!this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
-      this.selectDayRange({
-        start: this.drag_event_origin_date.start,
-        end: this.drag_event_on_date.end
-      });
+
+      if(this.drag_event_origin_date.start.format('X') > this.drag_event_on_date.end.format('X')) {
+        this.selectDayRange({
+          start: this.drag_event_on_date.start,
+          end: this.drag_event_origin_date.end
+        });
+      } else {
+        this.selectDayRange({
+          start: this.drag_event_origin_date.start,
+          end: this.drag_event_on_date.end
+        });
+      }
     },
 
     onMousedown(e) {
