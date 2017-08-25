@@ -1,6 +1,31 @@
 <template>
   <div v-bind:id="id" v-bind:class="classObj">
-    <frame v-on:prev="prev" v-on:next="next"></frame>
+
+    <table class="vxc-main-table">
+      <tr class="heading-row">
+        <th colspan="9">
+          <a href="#" class="vxc-nav prev" v-html="this.options.prev_nav" @click.stop.prevent="prev"></a>
+          <span class="vxc-title" v-html="this.title"></span>
+          <a href="#" class="vxc-nav next" v-html="this.options.next_nav" @click.stop.prevent="next"></a>
+        </th>
+      </tr>
+      <tr class="heading-row day-name-row" v-if="!_isDay()">
+        <th class="entry-row" v-if="!_isMonth()"></th>
+        <th v-for="header in headers" class="day-title" v-html="header.text" v-if="!_isDay()"></th>
+      </tr>
+      <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
+        <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k"  v-bind:entries="getDayEntries(day.start, day.end)" v-on:onRangeselect="rangeSelect"></day>
+      </tr>
+      <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
+        <td v-text="time.text"></td>
+        <day v-for="(range, k) in time_ranges[0].ranges" 
+        v-bind:day="range.times[ l ]" 
+        v-bind:key="l"
+        v-bind:entries="getDayEntries(range.times[ l ].start, range.times[ l ].end)" 
+        v-on:onRangeselect="rangeSelect"></day>
+      </tr>
+    </table>
+
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
@@ -8,6 +33,8 @@
 </template>
 
 <script>
+import day from './Day'
+import entry from './Entry'
 import frame from './Frame'
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
@@ -19,23 +46,18 @@ var moment = require('moment');
 export default {
 
   components: {
-    frame
+    frame, entry, day
   },
 
   mixins: [ helpers, calendar_helpers ],
 
   props: {
-    ...mapGetters([ 'entries' ]),
-    calendar_entries: {
-      default: function() {
-        [ ]
-      }
-    },
+    entries: { default: function() { [ ] } },
     initial_options: null
   },
 
   watch: {
-    calendar_entries: function() {
+    entries: function() {
       this.render();
     }
   },
@@ -47,19 +69,15 @@ export default {
   data() {
     return {
       id: null,
+      date: null,
+      times: [ ],
       loading: false,
       options: null,
-      classObj: {
-        'vuex-calendar': true
-      },
-      times: [
-
-      ],
-      // calendar_entries: [
-      //   // 
-      // ],
-      date: null,
+      headers: [ ],
+      time_ranges: [ ],
       initial_date: null,
+      calendar_entries: [ ],
+      classObj: { 'vuex-calendar': true },
     }
   },
 
@@ -78,12 +96,10 @@ export default {
     if(!this.id) { // Generate id
       this.id = parseInt( Math.random(1) * 999 );
     }
- 
-    this.classObj[this.options.type] = true;
+     this.classObj[this.options.type] = true;
     if(this.options.theme) {
       this.classObj[this.options.theme] = true;
     }
-
     this.date.locale(this.options.locale);
     this.setSelectedDate(this.date);
 
@@ -92,8 +108,6 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
 
-  mounted()  {
-  },
 
   methods: {
 
@@ -307,11 +321,9 @@ export default {
       this.times = this._createTimes();
  
       if(this.options.type == 'month') {
-        let calendar_dates = this._createMonth();
-        this.setTimeRanges(calendar_dates);
+        this.time_ranges = this._createMonth();
       } else {
-        let calendar_dates = this._createWeek();
-        this.setTimeRanges(calendar_dates);
+        this.time_ranges = this._createWeek();
       }
       this.setSelectedDate(this.date);
       this.loading = false;
@@ -329,32 +341,115 @@ export default {
       this.options.selected_date = this._longFormat(this.date);
       this.times = this._createTimes();
       if(this._isMonth()) {
-        let calendar_dates = this._createMonth();
-        this.setTimeRanges(calendar_dates);
+        this.time_ranges = this._createMonth();
       } else {
-        let calendar_dates = this._createWeek();
-        this.setTimeRanges(calendar_dates);
+        this.time_ranges = this._createWeek();
       }
       this.setSelectedDate(this.date);
       this.loading = false;
     },
 
-/*** HELPERS ***/
-    _getOverlappingEntries(entry, entry_objects) {
-      return entry_objects.filter(function(item) {
-        if(item.guid != entry.guid) { // Skip if entry itself
-          let istart = parseInt(item.from), iend = parseInt(item.to),
-          estart = parseInt(entry.from), eend = parseInt(entry.to);
-          return (
-            // Check if overlapping in any way
-            ( istart >= estart && iend <= eend ) || // [ --- ]
-            ( istart <= estart && iend > estart) || // -[ -- ]
-            ( istart <= estart && iend >= eend ) || // --[ --- ]--
-            ( istart <= eend && iend >= eend ) // [ -- ]-
-          );
-        }
-      });
+    sortEntries(entries) {
+      var a = function(o) { return parseInt(moment(o.start).format('X')); };
+      var b = function(o) { return parseInt(moment(o.end).format('X') - moment(o.start).format('X') ); }
+      return _.sortBy(entries, [ b ], [ 'desc' ]);;
     },
+
+    handleResize() {
+      this._checkOffsets(this.entries);
+    },
+
+    monthHeader(moment) {
+      // Header
+      moment.locale(this.locale);
+      var tmp = moment.clone(),
+      headers = [ ],
+      startWeek = tmp.startOf('isoWeek').clone(),
+      endWeek = tmp.endOf('isoWeek').clone();
+      // Loop trough the week and push generate day names as headers
+      while(startWeek.format('d') != endWeek.format('d')) {
+        var cell = { text: startWeek.format('dddd').substr(0, 2) };
+        startWeek.add(1, 'days');
+        // Append to table headers
+        headers.push(cell);
+      }
+      // Last cell
+      var cell = {
+        text: startWeek.format('dddd').substr(0, 2),
+        sanitized: startWeek.format('l')
+      };
+      startWeek.add(1, 'days');
+      // Append to table headers
+      headers.push(cell);
+      return headers;
+    },
+
+    weekHeader(moment) {
+      // Header
+      moment.locale(this.locale);
+      var headers = [ ];
+      var tmp = moment.clone();
+      var startWeek = tmp.startOf('isoWeek').clone();
+      var endWeek = tmp.endOf('isoWeek').clone();
+      var range = startWeek.format(this.options.format.date) + ' - ' + endWeek.format(this.options.format.date);
+      while(startWeek.format('d') != endWeek.format('d')) {
+        var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date) };
+        startWeek.add(1, 'days');
+        // Append to table headers
+        headers.push(cell);
+      }
+      var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date) };
+      startWeek.add(1, 'days');
+      // Append to table headers
+      headers.push(cell);
+      return headers;
+    },
+
+    dayHeader(moment) {
+      // Header
+      moment.locale(this.locale);
+      var headers = [ ];
+      var tmp = moment.clone();
+      var cell = { text: tmp.format('dddd').substr(0, 2) };
+      headers.push(cell);
+      return headers;
+    },
+
+    calendarTitle(moment) {
+      if(this._isMonth()) {
+        let start = moment.startOf('month'), end = moment.endOf('month');
+        return '<span class="month-name">' + start.format('MMMM') + '</span>' + ' <span class="year">' + end.format('YYYY') + '</span>';
+      } else if(this._isWeek()) {
+        let startWeek = moment.startOf('isoWeek').clone();
+        let endWeek = moment.endOf('isoWeek').clone();
+        return startWeek.format('L') + ' - ' + endWeek.format('L');
+      } else if(this._isDay()) {
+        return moment.format('dddd') + '<br>' + moment.format('L');
+      }
+    },
+
+    getDayEntries(start, end) {
+      let entries = [ ];
+      var day_format = start.format('X');
+      for(let e in this.calendar_entries) {
+        let s = moment(this.calendar_entries[ e ].start);
+        if(this._isMonth()) {
+          s.hours(0).minutes(0).seconds(0);
+        }
+        s = s.format('X');
+        if(s == day_format) {
+          entries.push(this.calendar_entries[ e ]);
+        }
+      }
+      return entries;
+    },
+
+    rangeSelect(start, end) {
+      this.$emit('onRangeselect', start, end);
+    },
+
+
+/*** HELPERS ***/
 
     _checkBreakpoints() {
       // Hunt for breakpoints
@@ -379,17 +474,27 @@ export default {
     },
 
     render() {
-      let entry_objects = this._createEntryObjects(this.calendar_entries);
+   
+      // Create header
+      let clone = this.date.clone();
+      if(this._isMonth()) {
+        this.headers = this.monthHeader(clone);
+      } else if(this._isWeek()) {
+        this.headers = this.weekHeader(clone);
+      }
+      this.title = this.calendarTitle(clone);
+
+      this.calendar_entries = this.sortEntries(this._createEntryObjects(this.entries));
+      this.calendar_entries = this._checkOffsets(this.calendar_entries);
+
+      // Create days / hours
       this.times = this._createTimes();
       if(this._isMonth()) {
-        let calendar_dates = this._createMonth();
-        this.setEntries(entry_objects);
-        this.setTimeRanges(calendar_dates);
+        this.time_ranges = this._createMonth();
       } else {
-        let calendar_dates = this._createWeek();
-        this.setEntries(entry_objects);
-        this.setTimeRanges(calendar_dates);
+        this.time_ranges = this._createWeek();
       }
+
     },
 
   } // Methods

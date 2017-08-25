@@ -11,21 +11,21 @@
 
     <span class="day-number" v-if="_isMonth()">{{ day.text }}</span>
 
-    <entry v-for="(entry, k) in day_entries" 
+    <entry v-for="(entry, k) in entries" 
     v-if="!entry.overflow"
     v-bind:key="k" 
     v-on:draggedOver="onDraggedOverEntry"
     v-on:entryClick="onEntryClicked"
     v-bind:entry="entry"></entry>
 
-    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle">
+    <a v-if="entries.length > options.entry_limit" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle">
       <i class="fa fa-plus"></i>
     </a>
 
-    <entryPopup v-if="day_entries.length > options.entry_limit && popup_open">
+    <entryPopup v-if="entries.length > options.entry_limit && popup_open">
       <div class="text-center" style="border-bottom: 2px solid #636363">All entries<br>{{ day.sanitized }}</div>
   
-      <entry v-for="(entry, k) in day_entries" 
+      <entry v-for="(entry, k) in entries" 
       v-bind:key="k" 
       v-on:draggedOver="onDraggedOverEntry"
       v-on:entryClick="onEntryClicked"
@@ -54,28 +54,15 @@ export default {
 
   computed: {
     ...mapGetters([
-      'moving', 'resizing', 'selecting', 'entries',
-      'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
+      'moving', 'resizing', 'selecting', 'date', 'options',
+      'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
       'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date'
     ]),
-    day_entries: function() {
-      let entries = [ ];
-      var day_format = this.day.start.format('X');
-      for(let e in this.entries) {
-        let start = this.entries[ e ].from.clone().format('X');
-        if(this._isMonth()) {
-          start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
-        }
-        if(start == day_format) {
-          entries.push(this.entries[ e ]);
-        }
-      }
-      return entries;
-    }
   },
 
   props: {
-    day: null
+    day: null,
+    entries: { default: function() { [ ] } }
   },
 
   data() {
@@ -84,21 +71,16 @@ export default {
     }
   },
 
-  created() {
-  },
-
   methods: {
 
     ...mapActions([
-      'activateDay', 'activateEntry', 'sortEntries', 'setTargetDay', 'setDragEventOnDate', 
+      'activateDay', 'activateEntry', 'setTargetDay', 'setDragEventOnDate', 
       'resetEvents', 'setSelectingEvent', 'setDragEventEntry', 'selectDayRange', 'removeActiveEntries',
       'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
     ]),
 
 
-    onDrag(e) {
-    },
-
+    onDrag(e) {},
     onDragstart(e) {
 
       let img = new Image();
@@ -139,9 +121,6 @@ export default {
         self.resetEvents();
         return;
       }
-
-      this.sortEntries();
-      this._checkOffsets(this.entries);
     },
 
     onClick(e) {
@@ -171,32 +150,32 @@ export default {
     },
 
     onDraggedOverEntry(e, entry_element) {
-      if(this.drag_event_entry && entry_element) {
-        let slot = this._getElementFromMousePosition(e.clientX, e.clientY, entry_element);
-        if(!this.drag_event_on_date) {
-          let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
-          if(!d) {
-            return;
-          }
-          this.setDragEventOnDate(d);
-          if(this.moving) {
-            this._doEntryMove();
-          } else if(this.resizing) {  
-            this._doEntryResize();
-          }
-        } else if(this.drag_event_on_date.timestamp != slot.dataset.timestamp) {
-          let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
-          if(!d) {
-            return;
-          }
-          this.setDragEventOnDate(d);
-          if(this.moving) {
-            this._doEntryMove();
-          } else if(this.resizing) {
-            this._doEntryResize();
-          }
-        }
-      }
+      // if(this.drag_event_entry && entry_element) {
+      //   let slot = this._getElementFromMousePosition(e.clientX, e.clientY, entry_element);
+      //   if(!this.drag_event_on_date) {
+      //     let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
+      //     if(!d) {
+      //       return;
+      //     }
+      //     this.setDragEventOnDate(d);
+      //     if(this.moving) {
+      //       this._doEntryMove();
+      //     } else if(this.resizing) {  
+      //       this._doEntryResize();
+      //     }
+      //   } else if(this.drag_event_on_date.timestamp != slot.dataset.timestamp) {
+      //     let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
+      //     if(!d) {
+      //       return;
+      //     }
+      //     this.setDragEventOnDate(d);
+      //     if(this.moving) {
+      //       this._doEntryMove();
+      //     } else if(this.resizing) {
+      //       this._doEntryResize();
+      //     }
+      //   }
+      // }
     },
 
     onEntryClicked(entry, node) {
@@ -284,14 +263,13 @@ export default {
         }
 
         entry.end = self._longFormat(end);
-
         let entries = self._createEntryObjects([ entry ]);
         self.removeActiveEntries();
         for(let e in entries) {
           self.activateEntry(entries[ e ]);
         }
-
         self.appendEntries(entries);
+
       // }, 400);
     },
 
@@ -302,7 +280,6 @@ export default {
       if(!this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
-
       if(this.drag_event_origin_date.start.format('X') > this.drag_event_on_date.end.format('X')) {
         this.selectDayRange({
           start: this.drag_event_on_date.start,

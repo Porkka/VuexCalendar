@@ -245,7 +245,7 @@ export default {
 
     _initEntryObject(ent) {
       let entry = _.cloneDeep(ent);
-    
+
       entry.guid = this._guid();
       entry.origin_from = entry.from = moment(entry.start).locale(this.options.locale);
       entry.origin_to = entry.to = moment(entry.end).locale(this.options.locale);
@@ -297,7 +297,7 @@ export default {
 
         all_entries.push(entries[ ent ]);
       }
-      return entries;
+      return all_entries;
     },
 
     // setOverflowEntries() {

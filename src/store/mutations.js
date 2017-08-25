@@ -27,11 +27,11 @@ export default {
     }
   },
 
-  SORT_ENTRIES (state) {
-    var a = function(o) { return parseInt(o.from.format('X')); };
-    var b = function(o) { return parseInt( o.from.format('X') - o.to.format('X') ); }
-    state.entries = _.sortBy(state.entries, [ b ], [ 'desc' ]);
-  },
+  // SORT_ENTRIES (state) {
+  //   var a = function(o) { return parseInt(o.from.format('X')); };
+  //   var b = function(o) { return parseInt( o.from.format('X') - o.to.format('X') ); }
+  //   state.entries = _.sortBy(state.entries, [ b ], [ 'desc' ]);
+  // },
 
   SELECT_CALENDAR_RANGE (state, range) {
     let start = range.start.format('X'), end = range.end.format('X');

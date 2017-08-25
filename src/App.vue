@@ -1,6 +1,6 @@
 <template>
   <div>
-    <calendar v-bind:calendar_entries="calendar_entries" v-bind:initial_options="options"></calendar>
+    <calendar v-bind:entries="entries" v-bind:initial_options="options"></calendar>
   </div>
 </template>
 <style lang="scss">
@@ -25,15 +25,59 @@ export default {
     calendar
   },
 
-  computed: {
-    ...mapGetters([
-      'entries'
-    ])
-  },
-
   data() {
     return {
-      calendar_entries: [ ],
+      entries: [
+        {
+        title: 'Long ass fucking name',
+        start: '2017-08-19 15:00',
+        end: '2017-08-26 18:00',
+        styles: {
+          color: '#FFFFFF',
+          background: 'rgba(255, 155, 0, 0.68)',
+        }
+       },
+       {
+        title: 'Text text',
+        start: '2017-08-19 15:00',
+        end: '2017-08-19 18:00',
+        styles: {
+          background: 'rgba(155, 200, 0, 0.68)',
+        }
+       },
+       {
+        title: 'Drink beer',
+        start: '2017-08-19 15:00',
+        end: '2017-08-19 18:00',
+        styles: {
+          background: 'rgba(255, 0, 155, 0.68)',
+        }
+       },
+       {
+        title: 'Shots, shots, shots, shots',
+        start: '2017-08-19 15:00',
+        end: '2017-08-19 18:00',
+        styles: {
+          background: 'rgba(255, 0, 0, 0.68)',
+        }
+       },
+       {
+        title: 'Drink beer',
+        start: '2017-08-08 15:00',
+        end: '2017-08-08 18:00',
+        styles: {
+          background: 'rgba(0, 100, 200, 0.68)',
+        }
+      },
+       {
+        title: 'Drink beer',
+        start: '2017-08-18 07:00',
+        end: '2017-08-20 22:59:29',
+        styles: {
+          background: 'rgba(0, 100, 200, 0.68)',
+        }
+       },
+     ],
       options: {
         theme: 'original',
         locale: 'fi',
@@ -132,60 +176,5 @@ export default {
       }
     }
   },
-
-  created() {
-    this.calendar_entries = [
-       {
-        title: 'Long ass fucking name',
-        start: '2017-08-19 15:00',
-        end: '2017-08-26 18:00',
-        styles: {
-          color: '#FFFFFF',
-          background: 'rgba(255, 155, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Text text',
-        start: '2017-08-19 15:00',
-        end: '2017-08-19 18:00',
-        styles: {
-          background: 'rgba(155, 200, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Drink beer',
-        start: '2017-08-19 15:00',
-        end: '2017-08-19 18:00',
-        styles: {
-          background: 'rgba(255, 0, 155, 0.68)',
-        }
-       },
-       {
-        title: 'Shots, shots, shots, shots',
-        start: '2017-08-19 15:00',
-        end: '2017-08-19 18:00',
-        styles: {
-          background: 'rgba(255, 0, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Drink beer',
-        start: '2017-08-08 15:00',
-        end: '2017-08-08 18:00',
-        styles: {
-          background: 'rgba(0, 100, 200, 0.68)',
-        }
-      },
-       {
-        title: 'Drink beer',
-        start: '2017-08-18 07:00',
-        end: '2017-08-20 22:59:29',
-        styles: {
-          background: 'rgba(0, 100, 200, 0.68)',
-        }
-       },
-    ];
-  },
-
 }
 </script>

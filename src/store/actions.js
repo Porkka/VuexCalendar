@@ -16,9 +16,9 @@ export default {
 		commit('SET_CALENDAR_TIME_RANGES', time_ranges)
 	},
 
-	sortEntries: ({ commit }) => {
-		commit('SORT_ENTRIES')
-	},
+	// sortEntries: ({ commit }) => {
+	// 	commit('SORT_ENTRIES')
+	// },
 
 	setEntries: ({ commit }, entries) => {
 		commit('STORE_ENTRIES', entries)
