@@ -33,7 +33,56 @@ export default {
 
   data() {
     return {
-      calendar_entries: [ ],
+      calendar_entries: [{
+        title: 'Long ass fucking name',
+        start: '2017-08-09 15:00',
+        end: '2017-08-10 18:00',
+        styles: {
+          color: '#FFFFFF',
+          background: 'rgba(255, 155, 0, 0.68)',
+        }
+       },
+       {
+        title: 'Text text',
+        start: '2017-08-10 15:00',
+        end: '2017-08-11 18:00',
+        styles: {
+          background: 'rgba(155, 200, 0, 0.68)',
+        }
+       },
+      //  {
+      //   title: 'Drink beer',
+      //   start: '2017-08-19 15:00',
+      //   end: '2017-08-19 18:00',
+      //   styles: {
+      //     background: 'rgba(255, 0, 155, 0.68)',
+      //   }
+      //  },
+      //  {
+      //   title: 'Shots, shots, shots, shots',
+      //   start: '2017-08-19 15:00',
+      //   end: '2017-08-19 18:00',
+      //   styles: {
+      //     background: 'rgba(255, 0, 0, 0.68)',
+      //   }
+      //  },
+      //  {
+      //   title: 'Drink beer',
+      //   start: '2017-08-08 15:00',
+      //   end: '2017-08-08 18:00',
+      //   styles: {
+      //     background: 'rgba(0, 100, 200, 0.68)',
+      //   }
+      // },
+      //  {
+      //   title: 'Drink beer',
+      //   start: '2017-08-18 07:00',
+      //   end: '2017-08-20 22:59:29',
+      //   styles: {
+      //     background: 'rgba(0, 100, 200, 0.68)',
+      //   }
+      // }
+      ],
       options: {
         theme: 'original',
         locale: 'fi',
@@ -58,8 +107,8 @@ export default {
         },
         hour_interval: '01:00:00',
         onRangeSelect: (start, end) => {
-          var entries = this.entries;
-          entries.push({
+          this.calendar_entries = this.entries;
+          this.calendar_entries.push({
             title: 'Untitled',
             start: start.start.format('YYYY-MM-DD HH:mm'),
             end: end.end.format('YYYY-MM-DD HH:mm'),
@@ -68,7 +117,6 @@ export default {
               background: 'rgba(255, 155, 0, 0.68)',
             }
           });
-          this.calendar_entries = entries;
         },
         onEntryClick: (entry, node) => {
           var self = this;
@@ -115,9 +163,18 @@ export default {
           remove.innerHTML = '<i class="fa fa-trash"></i>';
           remove.addEventListener('click', function(e) {
             e.preventDefault(); e.stopPropagation();
+            var new_entries = [ ];
             var guid = this.getAttribute('href');
-            console.log(self);
-            self.$dispatch('add-entry');
+            for(var e in self.entries) {
+              if(self.entries[e].guid != guid) {
+                new_entries.push(self.entries[e]);
+              }
+            }
+            self.calendar_entries = new_entries;
+            var old = document.getElementById('entry-overview');
+            if(old) {
+              old.remove();
+            }
           });
 
           toolbox.appendChild(edit);
@@ -132,60 +189,5 @@ export default {
       }
     }
   },
-
-  created() {
-    this.calendar_entries = [
-       {
-        title: 'Long ass fucking name',
-        start: '2017-08-19 15:00',
-        end: '2017-08-26 18:00',
-        styles: {
-          color: '#FFFFFF',
-          background: 'rgba(255, 155, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Text text',
-        start: '2017-08-19 15:00',
-        end: '2017-08-19 18:00',
-        styles: {
-          background: 'rgba(155, 200, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Drink beer',
-        start: '2017-08-19 15:00',
-        end: '2017-08-19 18:00',
-        styles: {
-          background: 'rgba(255, 0, 155, 0.68)',
-        }
-       },
-       {
-        title: 'Shots, shots, shots, shots',
-        start: '2017-08-19 15:00',
-        end: '2017-08-19 18:00',
-        styles: {
-          background: 'rgba(255, 0, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Drink beer',
-        start: '2017-08-08 15:00',
-        end: '2017-08-08 18:00',
-        styles: {
-          background: 'rgba(0, 100, 200, 0.68)',
-        }
-      },
-       {
-        title: 'Drink beer',
-        start: '2017-08-18 07:00',
-        end: '2017-08-20 22:59:29',
-        styles: {
-          background: 'rgba(0, 100, 200, 0.68)',
-        }
-       },
-    ];
-  },
-
 }
 </script>

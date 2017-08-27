@@ -54,13 +54,13 @@ export default {
 
   computed: {
     ...mapGetters([
-      'moving', 'resizing', 'selecting', 'entries',
-      'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
+      'moving', 'resizing', 'selecting', 'entries', 'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
       'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date'
     ]),
     day_entries: function() {
       let entries = [ ];
       var day_format = this.day.start.format('X');
+      // console.log('Getting day entries from the collection...');
       for(let e in this.entries) {
         let start = this.entries[ e ].from.clone().format('X');
         if(this._isMonth()) {
@@ -70,6 +70,7 @@ export default {
           entries.push(this.entries[ e ]);
         }
       }
+      // console.log('Done getting entries');
       return entries;
     }
   },
@@ -90,9 +91,9 @@ export default {
   methods: {
 
     ...mapActions([
-      'activateDay', 'activateEntry', 'sortEntries', 'setTargetDay', 'setDragEventOnDate', 
-      'resetEvents', 'setSelectingEvent', 'setDragEventEntry', 'selectDayRange', 'removeActiveEntries',
-      'restoreEntries', 'setWeeks', 'replaceEntry', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
+      'activateEntry', 'setDragEventOnDate',
+      'resetEvents', 'setSelectingEvent', 'selectDayRange', 'removeActiveEntries',
+      'restoreEntries', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
     ]),
 
 
@@ -139,9 +140,6 @@ export default {
         self.resetEvents();
         return;
       }
-
-      this.sortEntries();
-      this._checkOffsets(this.entries);
     },
 
     onClick(e) {

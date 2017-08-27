@@ -22,6 +22,7 @@ export default {
 
 	setEntries: ({ commit }, entries) => {
 		commit('STORE_ENTRIES', entries)
+		commit('SORT_ENTRIES')
 	},
 
 	appendEntries: ({ commit }, entries) => {

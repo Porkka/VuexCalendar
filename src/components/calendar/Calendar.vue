@@ -1,6 +1,25 @@
 <template>
   <div v-bind:id="id" v-bind:class="classObj">
-    <frame v-on:prev="prev" v-on:next="next"></frame>
+    <table class="vxc-main-table">
+      <tr class="heading-row">
+        <th colspan="9">
+          <a href="#" class="vxc-nav prev" v-html="this.options.prev_nav" @click.stop.prevent="prev"></a>
+          <span class="vxc-title" v-html="this.title"></span>
+          <a href="#" class="vxc-nav next" v-html="this.options.next_nav" @click.stop.prevent="next"></a>
+        </th>
+      </tr>
+      <tr class="heading-row day-name-row" v-if="!_isDay()">
+        <th class="entry-row" v-if="!_isMonth()"></th>
+        <th v-for="header in headers" class="day-title" v-html="header.text" v-if="!_isDay()"></th>
+      </tr>
+      <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
+        <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:onRangeselect="rangeSelect" v-on:dayDrop="onDayDrop"></day>
+      </tr>
+      <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
+        <td v-text="time.text"></td>
+        <day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:onRangeselect="rangeSelect" v-on:dayDrop="onDayDrop"></day>
+      </tr>
+    </table>
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
@@ -8,7 +27,8 @@
 </template>
 
 <script>
-import frame from './Frame'
+import day from './Day'
+import entry from './Entry'
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
@@ -19,13 +39,16 @@ var moment = require('moment');
 export default {
 
   components: {
-    frame
+    entry, day
   },
 
   mixins: [ helpers, calendar_helpers ],
 
+  computed: {
+    ...mapGetters([ 'entries', 'time_ranges' ]),
+  },
+
   props: {
-    ...mapGetters([ 'entries' ]),
     calendar_entries: {
       default: function() {
         [ ]
@@ -47,19 +70,14 @@ export default {
   data() {
     return {
       id: null,
-      loading: false,
-      options: null,
-      classObj: {
-        'vuex-calendar': true
-      },
-      times: [
-
-      ],
-      // calendar_entries: [
-      //   // 
-      // ],
+      title: '',
       date: null,
+      times: [ ],
+      headers: [ ],
+      options: null,
+      loading: false,
       initial_date: null,
+      classObj: { 'vuex-calendar': true },
     }
   },
 
@@ -92,9 +110,6 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
 
-  mounted()  {
-  },
-
   methods: {
 
     ...mapActions([
@@ -103,6 +118,9 @@ export default {
 
     handleResize() {
       this._checkBreakpoints();
+    },
+
+    onDayDrop() {
     },
 
     _createTimes() {
@@ -340,22 +358,6 @@ export default {
     },
 
 /*** HELPERS ***/
-    _getOverlappingEntries(entry, entry_objects) {
-      return entry_objects.filter(function(item) {
-        if(item.guid != entry.guid) { // Skip if entry itself
-          let istart = parseInt(item.from), iend = parseInt(item.to),
-          estart = parseInt(entry.from), eend = parseInt(entry.to);
-          return (
-            // Check if overlapping in any way
-            ( istart >= estart && iend <= eend ) || // [ --- ]
-            ( istart <= estart && iend > estart) || // -[ -- ]
-            ( istart <= estart && iend >= eend ) || // --[ --- ]--
-            ( istart <= eend && iend >= eend ) // [ -- ]-
-          );
-        }
-      });
-    },
-
     _checkBreakpoints() {
       // Hunt for breakpoints
       var min_width = null;
@@ -379,17 +381,112 @@ export default {
     },
 
     render() {
+      console.log("Rendering");
       let entry_objects = this._createEntryObjects(this.calendar_entries);
       this.times = this._createTimes();
       if(this._isMonth()) {
-        let calendar_dates = this._createMonth();
-        this.setEntries(entry_objects);
-        this.setTimeRanges(calendar_dates);
+        var calendar_dates = this._createMonth();
       } else {
-        let calendar_dates = this._createWeek();
-        this.setEntries(entry_objects);
-        this.setTimeRanges(calendar_dates);
+        var calendar_dates = this._createWeek();
       }
+      let clone = this.date.clone();
+      // console.log('Setting title');
+      this.title = this.calendarTitle(clone);
+      // console.log('Setting headers');
+      this.headers = this.calendarHeaders(clone);
+
+      this.setTimeRanges(calendar_dates);
+      this.setEntries(entry_objects);
+      this._checkOffsets(this.entries);
+    },
+
+
+    handleResize() {
+      this._checkOffsets(this.entries);
+    },
+
+    monthHeader(moment) {
+      // Header
+      moment.locale(this.locale);
+      var tmp = moment.clone(),
+      headers = [ ],
+      startWeek = tmp.startOf('isoWeek').clone(),
+      endWeek = tmp.endOf('isoWeek').clone();
+
+      // Loop trough the week and push generate day names as headers
+      while(startWeek.format('d') != endWeek.format('d')) {
+        var cell = { text: startWeek.format('dddd').substr(0, 2) };
+        startWeek.add(1, 'days');
+        // Append to table headers
+        headers.push(cell);
+      }
+      // Last cell
+      var cell = {
+        text: startWeek.format('dddd').substr(0, 2),
+        sanitized: startWeek.format('l')
+      };
+      startWeek.add(1, 'days');
+      // Append to table headers
+      headers.push(cell);
+
+      return headers;
+    },
+
+    weekHeader(moment) {
+      // Header
+      moment.locale(this.locale);
+      var tmp = moment.clone();
+      var headers = [ ];
+      var startWeek = tmp.startOf('isoWeek').clone();
+      var endWeek = tmp.endOf('isoWeek').clone();
+      var range = startWeek.format(this.options.format.date) + ' - ' + endWeek.format(this.options.format.date);
+      while(startWeek.format('d') != endWeek.format('d')) {
+        var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date) };
+        startWeek.add(1, 'days');
+        // Append to table headers
+        headers.push(cell);
+      }
+      var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date) };
+      startWeek.add(1, 'days');
+      // Append to table headers
+      headers.push(cell);
+      return headers;
+    },
+
+    dayHeader(moment) {
+      // Header
+      moment.locale(this.locale);
+      var headers = [ ];
+      var tmp = moment.clone();
+      var cell = { text: tmp.format('dddd').substr(0, 2) };
+      headers.push(cell);
+      return headers;
+    },
+
+    calendarTitle(moment) {
+      if(this._isMonth()) {
+        let start = moment.startOf('month'), end = moment.endOf('month');
+        return '<span class="month-name">' + start.format('MMMM') + '</span>' + ' <span class="year">' + end.format('YYYY') + '</span>';
+      } else if(this._isWeek()) {
+        let startWeek = moment.startOf('isoWeek').clone();
+        let endWeek = moment.endOf('isoWeek').clone();
+        return startWeek.format('L') + ' - ' + endWeek.format('L');
+      } else if(this._isDay()) {
+        return moment.format('dddd') + '<br>' + moment.format('L');
+      }
+    },
+
+    calendarHeaders(moment) {
+      if(this._isMonth()) {
+        var headers = this.monthHeader(moment);
+      } else if(this._isWeek()) {
+        var headers = this.weekHeader(moment);
+      }
+      return headers;
+    },
+
+    rangeSelect(start, end) {
+      this.$emit('onRangeselect', start, end);
     },
 
   } // Methods

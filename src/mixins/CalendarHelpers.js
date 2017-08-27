@@ -220,7 +220,8 @@ export default {
             ( istart >= estart && iend <= eend ) || // [ --- ]
             ( istart <= estart && iend > estart) || // -[ -- ]
             ( istart <= estart && iend >= eend ) || // --[ --- ]--
-            ( istart <= eend && iend >= eend ) // [ -- ]-
+            ( istart <= eend && iend >= eend ) || // [ -- ]-
+            ( (istart == eend || iend == estart ) && self._isMonth() ) // [ -- ]-
           );
         }
       });
@@ -237,7 +238,8 @@ export default {
             ( istart >= estart && iend <= eend ) || // [ --- ]
             ( istart <= estart && iend > estart) || // -[ -- ]
             ( istart <= estart && iend >= eend ) || // --[ --- ]--
-            ( istart <= eend && iend >= eend ) // [ -- ]-
+            ( istart <= eend && iend >= eend ) || // [ -- ]-
+            ( (istart == eend || iend == estart ) && self._isMonth() ) 
           );
       });
       return entries;
@@ -252,6 +254,7 @@ export default {
       entry.has_resizer = false;
       entry.origin_guid = '';
       entry.overflow = false;
+      entry.overlapping_with = 0;
       entry.classes = { entry: true },
       entry.attributes = { },
       entry.styles = { height: '25px' };
@@ -273,6 +276,13 @@ export default {
       return entry;
     },
 
+    _sortEntries(entries) {
+      var a = function(o) { return parseInt(o.from.format('X')); };
+      var b = function(o) { return parseInt( o.to.format('X') - o.from.format('X') ); }
+      entries = _.sortBy(entries, [ a, b ], [ 'desc' ]);
+      return entries;
+    },
+
     _checkOffsets(entries) {
       var all_entries = [ ];
       for(let ent in entries) {
@@ -289,29 +299,16 @@ export default {
             overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
           }
         }
+console.log(overlaps.length, entries[ent].text);
         if(overlaps.length > this.options.entry_limit) {
           entries[ent].overflow = true;
         } else {
           entries[ent].overflow = false;
         }
-
         all_entries.push(entries[ ent ]);
       }
-      return entries;
+      return all_entries;
     },
-
-    // setOverflowEntries() {
-    //   var all_entries = [ ];
-    //   for(let ent in this.entries) {
-    //     var overlaps = this._getOverlappingEntries(this.entries[ ent ], all_entries);
-    //     if(overlaps.length > this.options.entry_limit) {
-    //       this.entries[ent].overflow = true;
-    //     } else {
-    //       this.entries[ent].overflow = false;
-    //     }
-    //     all_entries.push(this.entries[ent]);
-    //   }
-    // },
 
 	}
 
