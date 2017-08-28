@@ -1,11 +1,11 @@
 <template>
-  <div v-bind:id="id" v-bind:class="classObj">
+  <div v-bind:class="classObj">
     <table class="vxc-main-table">
       <tr class="heading-row">
         <th colspan="9">
-          <a href="#" class="vxc-nav prev" v-html="this.options.prev_nav" @click.stop.prevent="prev"></a>
+          <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
           <span class="vxc-title" v-html="this.title"></span>
-          <a href="#" class="vxc-nav next" v-html="this.options.next_nav" @click.stop.prevent="next"></a>
+          <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
         </th>
       </tr>
       <tr class="heading-row day-name-row" v-if="!_isDay()">
@@ -13,11 +13,11 @@
         <th v-for="header in headers" class="day-title" v-html="header.text" v-if="!_isDay()"></th>
       </tr>
       <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
-        <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:onRangeselect="rangeSelect" v-on:dayDrop="onDayDrop"></day>
+        <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:onRangeselect="rangeSelect"></day>
       </tr>
       <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
         <td v-text="time.text"></td>
-        <day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:onRangeselect="rangeSelect" v-on:dayDrop="onDayDrop"></day>
+        <day v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:onRangeselect="rangeSelect"></day>
       </tr>
     </table>
     <div v-if="loading" class="loading-overlay">
@@ -49,17 +49,13 @@ export default {
   },
 
   props: {
-    calendar_entries: {
-      default: function() {
-        [ ]
-      }
-    },
-    initial_options: null
+    initial_options: null,
+    calendar_entries: { default: () => { [ ] } }
   },
 
   watch: {
     calendar_entries: function() {
-      this.render();
+      this.renderEntries();
     }
   },
 
@@ -69,7 +65,6 @@ export default {
 
   data() {
     return {
-      id: null,
       title: '',
       date: null,
       times: [ ],
@@ -90,12 +85,6 @@ export default {
     this.options = _.cloneDeep(this.initial_options);
     this.date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
     this.initial_date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
-
-    // TODO set props from passed options
-
-    if(!this.id) { // Generate id
-      this.id = parseInt( Math.random(1) * 999 );
-    }
  
     this.classObj[this.options.type] = true;
     if(this.options.theme) {
@@ -105,7 +94,8 @@ export default {
     this.date.locale(this.options.locale);
     this.setSelectedDate(this.date);
 
-    this.render();
+    this.renderCalendar();
+    this.renderEntries();
 
     window.addEventListener('resize', this.handleResize)
   },
@@ -113,14 +103,11 @@ export default {
   methods: {
 
     ...mapActions([
-      'setSelectedDate', 'setOptions', 'setTimeRanges', 'setEntries'
+      'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries'
     ]),
 
     handleResize() {
       this._checkBreakpoints();
-    },
-
-    onDayDrop() {
     },
 
     _createTimes() {
@@ -192,10 +179,8 @@ export default {
           entries: [ ],
           times: [ ],
           classes: {
-            'selected': false,
-            'past': false, 'today': false,
-            'future': false, 'prev-month': false,
-            'next-month': false, 'skeleton date-row': true,
+            'selected': false, 'past': false, 'today': false,
+            'future': false, 'prev-month': false, 'next-month': false, 'skeleton date-row': true,
           },
           sanitized: this.times[t].format('l'),
           timestamp: this.times[t].format('X'),
@@ -313,6 +298,8 @@ export default {
 
     prev() {
       this.loading = true;
+      var el = document.getElementById('prev');
+      el.className += ' pulse';
       if(this._isMonth()) {
         this.date.subtract(1, 'months').clone();
       } else if(this._isWeek()) {
@@ -332,11 +319,17 @@ export default {
         this.setTimeRanges(calendar_dates);
       }
       this.setSelectedDate(this.date);
+      this.renderCalendar();
       this.loading = false;
+      setTimeout(function() {
+        el.className = el.className.replace(' pulse');
+      }, 1000);
     },
 
-    next() {
+    next(e) {
       this.loading = true;
+      var el = document.getElementById('next');
+      el.className += ' pulse';
       if(this._isMonth()) {
         this.date.add(1, 'months').clone()
       } else if(this._isWeek()) {
@@ -354,7 +347,11 @@ export default {
         this.setTimeRanges(calendar_dates);
       }
       this.setSelectedDate(this.date);
+      this.renderCalendar();
       this.loading = false;
+      setTimeout(function() {
+        el.className = el.className.replace(' pulse');
+      }, 1000);
     },
 
 /*** HELPERS ***/
@@ -380,9 +377,7 @@ export default {
       this.render();
     },
 
-    render() {
-      console.log("Rendering");
-      let entry_objects = this._createEntryObjects(this.calendar_entries);
+    renderCalendar() {
       this.times = this._createTimes();
       if(this._isMonth()) {
         var calendar_dates = this._createMonth();
@@ -392,16 +387,19 @@ export default {
       let clone = this.date.clone();
       // console.log('Setting title');
       this.title = this.calendarTitle(clone);
-      // console.log('Setting headers');
       this.headers = this.calendarHeaders(clone);
-
+      // console.log('Setting headers');
       this.setTimeRanges(calendar_dates);
-      this.setEntries(entry_objects);
-      this._checkOffsets(this.entries);
     },
 
+    renderEntries() {
+      let entry_objects = this._createEntryObjects(this.calendar_entries);
+      this.setEntries(entry_objects);
+      this.entries = this._checkOffsets(this.entries);
+    },
 
     handleResize() {
+      this.setEntries(this.entries);
       this._checkOffsets(this.entries);
     },
 

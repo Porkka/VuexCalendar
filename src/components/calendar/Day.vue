@@ -1,38 +1,38 @@
 <template>
 <td 
-    draggable="true"
-    @drop="onDrop"
-    @dragstart="onDragstart"
-    @dragover.prevent="onDragover"
-    @click.stop.prevent="onClick"
-    v-bind:class="day.classes"
-    v-bind:data-sanitized="day.sanitized"
-    v-bind:data-timestamp="day.timestamp">
+  draggable="true"
+  @drop="onDrop"
+  @dragstart="onDragstart"
+  @dragover.prevent="onDragover"
+  @click.stop.prevent="onClick"
+  v-bind:class="day.classes"
+  v-bind:data-sanitized="day.sanitized"
+  v-bind:data-timestamp="day.timestamp">
 
-    <span class="day-number" v-if="_isMonth()">{{ day.text }}</span>
+  <span class="day-number" v-if="_isMonth()">{{ day.text }}</span>
+
+  <entry v-for="(entry, k) in day_entries" 
+  v-if="!entry.overflow"
+  v-bind:key="k" 
+  v-on:draggedOver="onDraggedOverEntry"
+  v-on:entryClick="onEntryClicked"
+  v-bind:entry="entry"></entry>
+
+  <a v-if="has_overflow" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle">
+    <i class="fa fa-plus"></i>
+  </a>
+
+  <entryPopup v-if="has_overflow && popup_open">
+    <div class="text-center" style="border-bottom: 2px solid #636363">All entries<br>{{ day.sanitized }}</div>
 
     <entry v-for="(entry, k) in day_entries" 
-    v-if="!entry.overflow"
     v-bind:key="k" 
     v-on:draggedOver="onDraggedOverEntry"
     v-on:entryClick="onEntryClicked"
     v-bind:entry="entry"></entry>
 
-    <a v-if="day_entries.length > options.entry_limit" href="#" v-on:click.prevent.stop="popup_open = true" class="entry-popup-toggle">
-      <i class="fa fa-plus"></i>
-    </a>
-
-    <entryPopup v-if="day_entries.length > options.entry_limit && popup_open">
-      <div class="text-center" style="border-bottom: 2px solid #636363">All entries<br>{{ day.sanitized }}</div>
-  
-      <entry v-for="(entry, k) in day_entries" 
-      v-bind:key="k" 
-      v-on:draggedOver="onDraggedOverEntry"
-      v-on:entryClick="onEntryClicked"
-      v-bind:entry="entry"></entry>
-
-      <a href="#" v-on:click.prevent.stop="popup_open = false" class="entry-popup-close"><i class="fa fa-times"></i></a>
-    </entryPopup>
+    <a href="#" v-on:click.prevent.stop="popup_open = false" class="entry-popup-close"><i class="fa fa-times"></i></a>
+  </entryPopup>
 
 </td>
 </template>
@@ -59,6 +59,7 @@ export default {
     ]),
     day_entries: function() {
       let entries = [ ];
+      this.has_overflow = false;
       var day_format = this.day.start.format('X');
       // console.log('Getting day entries from the collection...');
       for(let e in this.entries) {
@@ -67,6 +68,9 @@ export default {
           start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
         }
         if(start == day_format) {
+          if(this.entries[ e ].overflow) {
+            this.has_overflow = true;
+          }
           entries.push(this.entries[ e ]);
         }
       }
@@ -76,12 +80,13 @@ export default {
   },
 
   props: {
-    day: null
+    day: null,
   },
 
   data() {
     return {
       popup_open: false,
+      has_overflow: false
     }
   },
 
@@ -91,11 +96,10 @@ export default {
   methods: {
 
     ...mapActions([
-      'activateEntry', 'setDragEventOnDate',
+      'activateEntry', 'setDragEventOnDate', 'sortEntries',
       'resetEvents', 'setSelectingEvent', 'selectDayRange', 'removeActiveEntries',
       'restoreEntries', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
     ]),
-
 
     onDrag(e) {
     },
@@ -138,8 +142,9 @@ export default {
           console.log('VuexCalendar: onRangeSelect callback is not a function.');
         }
         self.resetEvents();
-        return;
       }
+      self.sortEntries();
+      this._checkOffsets(this.entries);
     },
 
     onClick(e) {
@@ -181,6 +186,8 @@ export default {
             this._doEntryMove();
           } else if(this.resizing) {  
             this._doEntryResize();
+          } else if(this.selecting) {  
+            this._doDaySelect();
           }
         } else if(this.drag_event_on_date.timestamp != slot.dataset.timestamp) {
           let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
@@ -192,6 +199,8 @@ export default {
             this._doEntryMove();
           } else if(this.resizing) {
             this._doEntryResize();
+          } else if(this.selecting) {
+            this._doDaySelect();
           }
         }
       }
@@ -224,6 +233,8 @@ export default {
       let end = entry.origin_to.clone().add(diff);
 
       if(this._isMonth()) {
+        start.hours(entry.from.hours());
+        end.hours(entry.to.hours());
         // start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
       }
 
