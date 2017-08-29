@@ -6,6 +6,19 @@
           <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
           <span class="vxc-title" v-html="this.title"></span>
           <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
+          <div class="vxc-tools">
+            <div class="field">
+              <div class="control">
+                <div class="select">
+                  <select v-model="initial_options.type">
+                    <option value="month">Month</option>
+                    <option value="week">Week</option>
+                    <option value="day">Day</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         </th>
       </tr>
       <tr class="heading-row day-name-row" v-if="!_isDay()">
@@ -45,7 +58,10 @@ export default {
   mixins: [ helpers, calendar_helpers ],
 
   computed: {
-    ...mapGetters([ 'entries', 'time_ranges' ]),
+    ...mapGetters([ 'entries', 'time_ranges', 'options' ]),
+    type() {
+      return this.initial_options.type
+    }
   },
 
   props: {
@@ -54,7 +70,17 @@ export default {
   },
 
   watch: {
+    type: function() {
+console.log('Type changed');
+      this.classObj[this.options.type] = false;
+      this.setOptions(this.initial_options);
+      this.classObj[this.options.type] = true;
+
+      this.renderCalendar();
+      this.renderEntries();
+    },
     calendar_entries: function() {
+console.log('Calendar entries changed');
       this.renderEntries();
     }
   },
@@ -68,8 +94,8 @@ export default {
       title: '',
       date: null,
       times: [ ],
+      timer: null,
       headers: [ ],
-      options: null,
       loading: false,
       initial_date: null,
       classObj: { 'vuex-calendar': true },
@@ -81,15 +107,13 @@ export default {
     if(this.initial_options) {
       this.setOptions(this.initial_options);
     }
-
-    this.options = _.cloneDeep(this.initial_options);
-    this.date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
-    this.initial_date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
- 
     this.classObj[this.options.type] = true;
     if(this.options.theme) {
       this.classObj[this.options.theme] = true;
     }
+
+    this.date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
+    this.initial_date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
 
     this.date.locale(this.options.locale);
     this.setSelectedDate(this.date);
@@ -107,7 +131,12 @@ export default {
     ]),
 
     handleResize() {
-      this._checkBreakpoints();
+      var self = this;
+      clearTimeout(self.timer);
+      self.timer = setTimeout(function() {
+        self.setEntries(self.entries);
+        self._checkOffsets(self.entries);
+      }, 300);
     },
 
     _createTimes() {
@@ -396,11 +425,6 @@ export default {
       let entry_objects = this._createEntryObjects(this.calendar_entries);
       this.setEntries(entry_objects);
       this.entries = this._checkOffsets(this.entries);
-    },
-
-    handleResize() {
-      this.setEntries(this.entries);
-      this._checkOffsets(this.entries);
     },
 
     monthHeader(moment) {

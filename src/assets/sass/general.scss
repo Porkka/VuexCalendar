@@ -40,6 +40,10 @@
 }
 .vuex-calendar {
 
+  .vxc-tools {
+    float: right;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -123,10 +127,6 @@
 
   }
 
-  &.week .vxc-title {
-    width: 195px;
-  }
-
   table td {
 
     .day-number {
@@ -157,14 +157,61 @@
       background-color: #B2F5FF;
     }
     /*** === /MODIFIERS === ***/
-
   }
 
-  /*** === WEEK === ***/
 
+  /*** ===  WEEK === ***/
+  &.week {
+
+    .vxc-title {
+      width: 195px;
+    }
+
+    table tr td  {
+      padding: 0;
+      height: 40px;
+    
+      &:first-child {
+        width: 50px;
+        text-align: center;
+      }
+
+      .entry {
+        top: 5px;
+        border-radius: 3px;
+      }
+
+    }
+
+  }
   /*** === /WEEK === ***/
 
+  /*** ===  DAY === ***/
+  &.day {
+
+    table tr td  {
+      padding: 0;
+      height: 40px;
+      width: 94%;
+    
+      &:first-child {
+        width: 50px;
+        text-align: center;
+      }
+
+      .entry {
+        top: 5px;
+        border-radius: 5px;
+      }
+
+    }
+
+  }
+/*** === /DAY === ***/
+
+
 }
+
 .vuex-calendar table .day-name-row {
 }
 .vuex-calendar table .day-title {
@@ -261,51 +308,6 @@ a.vxc-read-more {
   user-select: none;
 }
 /*** === /MONTH === ***/
-
-/*** ===  WEEK === ***/
-.vuex-calendar.week {
-
-  table tr td  {
-    padding: 0;
-    height: 40px;
-  
-    &:first-child {
-      width: 50px;
-      text-align: center;
-    }
-
-    .entry {
-      top: 5px;
-      border-radius: 3px;
-    }
-
-  }
-
-}
-/*** === /WEEK === ***/
-
-/*** ===  WEEK === ***/
-.vuex-calendar.day {
-
-  table tr td  {
-    padding: 0;
-    height: 40px;
-  
-    &:first-child {
-      width: 50px;
-      text-align: center;
-    }
-
-    .entry {
-      top: 5px;
-      border-radius: 5px;
-    }
-
-  }
-
-}
-/*** === /WEEK === ***/
-
 
 @media screen and (max-width: 1200px) {
 

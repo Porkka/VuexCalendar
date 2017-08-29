@@ -10,12 +10,20 @@
         </header>
         <section class="modal-card-body">
           <form action="" v-on:submit.prevent="saveEntry">
+            <div class="notification is-danger" v-if="form.errors.length">
+              <button class="delete" @click="form.errors = []"></button>
+              <ul>
+                <li v-for="error in form.errors" v-text="error"></li>
+              </ul>
+            </div>
+
             <label for="">Name</label>
-            <input type="datetime" name="to" v-model="form.entry.name">
+            <input type="text" name="to" id="vxc-entry-name" v-model="form.entry.name">
             <label for="">From</label>
-            <input type="datetime" name="from" v-model="form.entry.from">
+            <input type="text" name="from" id="vxc-entry-from" v-model="form.entry.from">
             <label for="">To</label>
-            <input type="datetime" name="to" v-model="form.entry.to">
+            <input type="text" name="to" id="vxc-entry-to" v-model="form.entry.to">
+
           </form>
         </section>
         <footer class="modal-card-foot">
@@ -31,6 +39,7 @@
 @import './assets/sass/dot-trail.scss';
 </style>
 <script>
+var moment = require('moment');
 import { mapActions, mapGetters } from 'vuex'
 import calendar from './components/calendar/Calendar'
 /**** 
@@ -50,7 +59,7 @@ export default {
 
   computed: {
     ...mapGetters([
-      'entries'
+      'entries', 'normalized_entries'
     ])
   },
 
@@ -64,6 +73,7 @@ export default {
           to: '',
           name: '',
         },
+        errors: [ ],
       },
 
       modal: {
@@ -108,16 +118,16 @@ export default {
        }
       ],
       options: {
-        theme: 'original',
         locale: 'fi',
         entry_limit: 3,
+        theme: 'original',
         day_start: '07:00',
         day_end: '23:59:59',
         prev_nav: '<i class="fa fa-angle-left"></i>',
         next_nav: '<i class="fa fa-angle-right"></i>',
         type: 'week',
         format: {
-          time: 'hh:mm a',
+          time: 'HH:mm',
           date: 'L'
         },
         breakpoints: {
@@ -136,8 +146,12 @@ export default {
           this.modal.title = 'Create new Entry';
 
           this.form.entry.name = '';
-          this.form.entry.from = start.start.format('YYYY-MM-DD HH:mm');
-          this.form.entry.to = end.end.format('YYYY-MM-DD HH:mm');
+          this.form.entry.from = start.start.format('L HH:mm');
+          this.form.entry.to = end.end.format('L HH:mm');
+
+          setTimeout(function( ) {
+            document.getElementById('vxc-entry-name').focus();
+          }, 400);
 
         },
         onEntryClick: (entry, node) => {
@@ -211,11 +225,22 @@ export default {
   },
   methods: {
     saveEntry() {
-      this.calendar_entries = this.entries;
+      this.calendar_entries = this.normalized_entries;
+
+      this.form.errors = [ ];
+
+      var name = this.form.entry.name.trim();
+      var from = this.form.entry.from.trim();
+      var to = this.form.entry.to.trim();
+      if(!name.length || !from.length || !to.length) {
+        this.form.errors.push('Please fill in all the fields!');
+        return;
+      }
+
       this.calendar_entries.push({
-        title: this.form.entry.name,
-        start: this.form.entry.from,
-        end: this.form.entry.to,
+        title: name,
+        start: moment(from, 'DD.MM.YYYY HH:mm').format('YYYY-MM-DD HH:mm'),
+        end: moment(to, 'DD.MM.YYYY HH:mm').format('YYYY-MM-DD HH:mm'),
         styles: {
           color: '#FFFFFF',
           background: 'rgba(255, 100, 0, 0.68)',

@@ -54,11 +54,15 @@ export default {
             } else {
               split.styles.width =  w + '%';
             }
+            split.styles.left = 'auto';
+            split.styles.height = '22px';
             entry_objects.push(split);
           }
         } else {
           entry.has_resizer = true;
           let day_diff = Math.abs(tmp_end.diff(tmp_start, 'days')) + 1;
+          entry.styles.left = 'auto';
+          entry.styles.height = '22px';
           entry.styles.width = (Math.max(day_diff, 1) * 100) - 12 + '%';
           entry_objects.push(entry);
         }
@@ -202,8 +206,12 @@ export default {
     _getOverlappingEntries(entry, entry_objects) {
       let self = this;
       let clone = _.cloneDeep(entry);
-      clone.from.hours(0).minutes(0).seconds(0);
-      clone.to.hours(23).minutes(59).seconds(59);
+
+      if(self._isMonth()) {
+        clone.from.hours(0).minutes(0).seconds(0);
+        clone.to.hours(23).minutes(59).seconds(59);
+      }
+
       let entries = entry_objects.filter(function(item) {
         if(item.guid != entry.guid) { // Skip if entry itself
           if(self._isMonth()) {
@@ -311,8 +319,12 @@ export default {
           styles.top = (entries[ ent ].slot * parseInt(entries[ ent ].styles.height)) + (4 * entries[ ent ].slot) + 25 + 'px';
           entries[ ent ].styles = styles;
         } else {
-          var width = 100 / (entries[ ent ].slot + 1);
-          entries[ ent ].styles.left = 10 + (20 * (entries[ ent ].slot)) + 'px';
+
+          var width = 100;
+          if(entries[ ent ].slot) {
+            width = 100 / (entries[ ent ].slot + 0.5);
+          }
+          entries[ ent ].styles.left = 10 + (width * entries[ ent ].slot) + 'px';
           entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
           for(let e in overlaps) {
             overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';

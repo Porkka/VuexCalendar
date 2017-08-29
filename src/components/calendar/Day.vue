@@ -55,7 +55,7 @@ export default {
   computed: {
     ...mapGetters([
       'moving', 'resizing', 'selecting', 'entries', 'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
-      'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date'
+      'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date', 'normalize_entry'
     ]),
     day_entries: function() {
       let entries = [ ];
@@ -174,7 +174,7 @@ export default {
     },
 
     onDraggedOverEntry(e, entry_element) {
-      if(this.drag_event_entry && entry_element) {
+      if(entry_element) {
         let slot = this._getElementFromMousePosition(e.clientX, e.clientY, entry_element);
         if(!this.drag_event_on_date) {
           let d = this.dayTimeByTimestamp(slot.dataset.timestamp);
@@ -208,7 +208,7 @@ export default {
 
     onEntryClicked(entry, node) {
       if(typeof(this.options.onEntryClick) == 'function') {
-        this.options.onEntryClick(entry, node);
+        this.options.onEntryClick(this.normalize_entry(entry), node);
       } else {
         console.log('VuexCalendar: onEntryClick callback is not a function.');
       }
@@ -267,48 +267,44 @@ export default {
       }
 
       var self = this;
-      // clearTimeout(this.timer);
-      // this.timer = setTimeout(function() {
-        let entry = _.cloneDeep(self.drag_event_entry),
-        guid = entry.guid,
-        old_start = moment(entry.start),
-        old_end = moment(entry.end),
-        start = moment(entry.start),
-        day_start = self._splitTimeStr(self.options.day_start),
-        end = self.drag_event_on_date.end,
-        tmp = start.clone();
+      let entry = _.cloneDeep(self.drag_event_entry),
+      guid = entry.guid,
+      old_start = moment(entry.start),
+      old_end = moment(entry.end),
+      start = moment(entry.start),
+      day_start = self._splitTimeStr(self.options.day_start),
+      end = self.drag_event_on_date.end,
+      tmp = start.clone();
 
-        if(self._isMonth()) {
-          if(tmp.hours(0).minutes(0).seconds(0).format('X') > end.format('X')) {
-            return;
-          }
-        } else {
-          if(tmp.format('X') > end.format('X')) {
-            return;
-          }
+      if(self._isMonth()) {
+        if(tmp.hours(0).minutes(0).seconds(0).format('X') > end.format('X')) {
+          return;
         }
-
-        if(self._isMonth()) {
-          end.hours(old_end.hours());
+      } else {
+        if(tmp.format('X') > end.format('X')) {
+          return;
         }
+      }
 
-        entry.end = self._longFormat(end);
+      if(self._isMonth()) {
+        end.hours(old_end.hours());
+      }
 
-        let entries = self._createEntryObjects([ entry ]);
-        self.removeActiveEntries();
-        for(let e in entries) {
-          self.activateEntry(entries[ e ]);
-        }
+      entry.end = self._longFormat(end);
 
-        self.appendEntries(entries);
-      // }, 400);
+      let entries = self._createEntryObjects([ entry ]);
+      self.removeActiveEntries();
+      for(let e in entries) {
+        self.activateEntry(entries[ e ]);
+      }
+
+      self.appendEntries(entries);
     },
 
     _doDaySelect() {
       if(!this.selecting) {
         return;
-      }
-      if(!this.drag_event_origin_date || !this.drag_event_on_date) {
+      } else if(!this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
 
