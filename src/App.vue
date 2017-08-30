@@ -125,7 +125,7 @@ export default {
         day_end: '23:59:59',
         prev_nav: '<i class="fa fa-angle-left"></i>',
         next_nav: '<i class="fa fa-angle-right"></i>',
-        type: 'week',
+        type: 'month',
         format: {
           time: 'HH:mm',
           date: 'L'
@@ -200,9 +200,9 @@ export default {
             e.preventDefault(); e.stopPropagation();
             var new_entries = [ ];
             var guid = this.getAttribute('href');
-            for(var e in self.entries) {
-              if(self.entries[e].guid != guid) {
-                new_entries.push(self.entries[e]);
+            for(var e in self.normalized_entries) {
+              if(self.normalized_entries[e].guid != guid) {
+                new_entries.push(self.normalized_entries[e]);
               }
             }
             self.calendar_entries = new_entries;

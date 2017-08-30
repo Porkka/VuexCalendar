@@ -23,7 +23,7 @@
       </tr>
       <tr class="heading-row day-name-row" v-if="!_isDay()">
         <th class="entry-row" v-if="!_isMonth()"></th>
-        <th v-for="header in headers" class="day-title" v-html="header.text" v-if="!_isDay()"></th>
+        <th v-for="header in headers" v-bind:class="[header.classes, 'day-title']" v-html="header.text" v-if="!_isDay()"></th>
       </tr>
       <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
         <day v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:onRangeselect="rangeSelect"></day>
@@ -457,13 +457,17 @@ console.log('Calendar entries changed');
     weekHeader(moment) {
       // Header
       moment.locale(this.locale);
-      var tmp = moment.clone();
-      var headers = [ ];
-      var startWeek = tmp.startOf('isoWeek').clone();
-      var endWeek = tmp.endOf('isoWeek').clone();
+      var tmp = moment.clone(), headers = [ ],
+      date_now_str = this.initial_date.format('l'),
+      startWeek = tmp.startOf('isoWeek').clone(), endWeek = tmp.endOf('isoWeek').clone();
       var range = startWeek.format(this.options.format.date) + ' - ' + endWeek.format(this.options.format.date);
       while(startWeek.format('d') != endWeek.format('d')) {
-        var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date) };
+        var cell = {
+          text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date),
+          classes: {
+            today: (startWeek.format('l') == date_now_str)
+          }
+        };
         startWeek.add(1, 'days');
         // Append to table headers
         headers.push(cell);

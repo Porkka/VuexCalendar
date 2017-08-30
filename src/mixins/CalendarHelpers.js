@@ -324,7 +324,7 @@ export default {
           if(entries[ ent ].slot) {
             width = 100 / (entries[ ent ].slot + 0.5);
           }
-          entries[ ent ].styles.left = 10 + (width * entries[ ent ].slot) + 'px';
+          entries[ ent ].styles.left = 10 + ((width/2) * entries[ ent ].slot) + 'px';
           entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
           for(let e in overlaps) {
             overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';

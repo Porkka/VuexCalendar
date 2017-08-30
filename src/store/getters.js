@@ -35,10 +35,8 @@ export default {
 		var normalized = [ ];
 		for(let e in state.entries) {
 			if(!state.entries[e].origin_guid) {
-				// Concatenate entries
-				var entry = getters.concatenate_entry(state.entries[e]);
 				// Push normalized
-				normalized.push(getters.normalize_entry(entry));
+				normalized.push(getters.normalize_entry(state.entries[e]));
 			}
 		}
 		return normalized;
