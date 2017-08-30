@@ -134,8 +134,7 @@ console.log('Calendar entries changed');
       var self = this;
       clearTimeout(self.timer);
       self.timer = setTimeout(function() {
-        self.setEntries(self.entries);
-        self._checkOffsets(self.entries);
+        self._checkBreakpoints();
       }, 300);
     },
 
@@ -387,7 +386,7 @@ console.log('Calendar entries changed');
     _checkBreakpoints() {
       // Hunt for breakpoints
       var min_width = null;
-      var cw = window.outerWidth;
+      var cw = window.innerWidth;
       for(var w in this.options.breakpoints) {
           w = parseInt(w);
           if(( cw <= w && min_width == null ) || ( w < min_width && min_width != null )) {
@@ -397,13 +396,20 @@ console.log('Calendar entries changed');
 
       // If we got min_width => Set new options and rerender the calendar
       if(min_width) {
-          var options = this._merge_options(this.options, this.options.breakpoints[ w ]);
+          var options = this._merge_options(this.options, this.options.breakpoints[ min_width ]);
       } else {
           var options = this.initial_options;
       }
-      this.options = options;
+
+      this.classObj['month'] = false;
+      this.classObj['week'] = false;
+      this.classObj['day'] = false;
       this.setOptions(options);
-      this.render();
+      this.classObj[options.type] = true;
+      this.renderCalendar();
+      this.renderEntries();
+      this._checkOffsets(this.entries);
+
     },
 
     renderCalendar() {

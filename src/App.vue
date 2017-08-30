@@ -131,8 +131,8 @@ export default {
           date: 'L'
         },
         breakpoints: {
-          767: { type: 'week', entry_limit: 2 },
-          640: { type: 'day', entry_limit: 2 }
+          767: { type: 'week' },
+          640: { type: 'day' }
         },
         events: { move: true, select: true, resize: true },
         property_names: {
