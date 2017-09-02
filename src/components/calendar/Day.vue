@@ -111,6 +111,11 @@ export default {
 
     onDrop(e) {
       var self = this;
+
+      if((!this.drag_event_entry || !this.drag_event_on_date) && (this.moving || this.resizing)) {
+        return;
+      }
+
       if(self.resizing) {
         if(self.options.onEntryResize()) {
           self.resetEvents();
@@ -204,13 +209,15 @@ export default {
       }
     },
 
-    _doEntryMove() {
+    _doEntryMove: _.debounce(function() {
 
       if(!this.moving) {
         return;
       } else if(!this.drag_event_entry || !this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
+
+      console.log('Tsajajaa');
 
       var entry = _.cloneDeep(this.drag_event_entry),
       old_start = entry.origin_from,
@@ -237,9 +244,9 @@ export default {
       entry.to = end;
 
       this.updateEntries([ this.get_attributes(entry) ]);
-    },
+    }, 200),
 
-    _doEntryResize() {
+    _doEntryResize: _.debounce(function() {
 
       if(!this.resizing) {
         return;
@@ -273,7 +280,7 @@ export default {
 
       entry.end = self._longFormat(end);
       this.updateEntries([ this.get_attributes(entry) ]);
-    },
+    }, 200),
 
     _doDaySelect() {
       if(!this.selecting) {
