@@ -10,7 +10,7 @@
             <div class="field">
               <div class="control">
                 <div class="select">
-                  <select v-model="initial_options.type">
+                  <select v-model="options.type">
                     <option value="month">Month</option>
                     <option value="week">Week</option>
                     <option value="day">Day</option>
@@ -58,31 +58,22 @@ export default {
   mixins: [ helpers, calendar_helpers ],
 
   computed: {
-    ...mapGetters([ 'entries', 'time_ranges', 'options' ]),
+    ...mapGetters([ 'entries', 'time_ranges', 'options', 'normalized_entries' ]),
     type() {
-      return this.initial_options.type
+      return this.options.type
     }
-  },
-
-  props: {
-    initial_options: null,
-    calendar_entries: { default: () => { [ ] } }
   },
 
   watch: {
     type: function() {
-console.log('Type changed');
-      this.classObj[this.options.type] = false;
-      this.setOptions(this.initial_options);
+      // Reset type class
+      this.classObj.day = this.classObj.week = this.classObj.month = false;
       this.classObj[this.options.type] = true;
-
+      // Create and render new times data (thus the calendar)
       this.renderCalendar();
-      this.renderEntries();
+      // Re-render entries to fit the new calendar theme
+      this.setEntries( this.normalized_entries );
     },
-    calendar_entries: function() {
-console.log('Calendar entries changed');
-      this.renderEntries();
-    }
   },
 
   beforeDestroy: function () {
@@ -98,20 +89,19 @@ console.log('Calendar entries changed');
       headers: [ ],
       loading: false,
       initial_date: null,
+      initial_options: null,
       classObj: { 'vuex-calendar': true },
     }
   },
 
   created() {
 
-    if(this.initial_options) {
-      this.setOptions(this.initial_options);
-    }
     this.classObj[this.options.type] = true;
     if(this.options.theme) {
       this.classObj[this.options.theme] = true;
     }
 
+    this.initial_options = _.cloneDeep(this.options);
     this.date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
     this.initial_date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
 
@@ -119,16 +109,13 @@ console.log('Calendar entries changed');
     this.setSelectedDate(this.date);
 
     this.renderCalendar();
-    this.renderEntries();
 
     window.addEventListener('resize', this.handleResize)
   },
 
   methods: {
 
-    ...mapActions([
-      'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries'
-    ]),
+    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'refreshEntries' ]),
 
     handleResize() {
       var self = this;
@@ -401,15 +388,9 @@ console.log('Calendar entries changed');
           var options = this.initial_options;
       }
 
-      this.classObj['month'] = false;
-      this.classObj['week'] = false;
-      this.classObj['day'] = false;
-      this.setOptions(options);
+      this.classObj['day'] = this.classObj['week'] = this.classObj['month'] = false;
       this.classObj[options.type] = true;
-      this.renderCalendar();
-      this.renderEntries();
-      this._checkOffsets(this.entries);
-
+      this.setOptions(options);
     },
 
     renderCalendar() {
@@ -420,17 +401,12 @@ console.log('Calendar entries changed');
         var calendar_dates = this._createWeek();
       }
       let clone = this.date.clone();
-      // console.log('Setting title');
+      console.log('Setting title');
       this.title = this.calendarTitle(clone);
+      console.log('Setting headers');
       this.headers = this.calendarHeaders(clone);
-      // console.log('Setting headers');
+      console.log('Setting time ranges');
       this.setTimeRanges(calendar_dates);
-    },
-
-    renderEntries() {
-      let entry_objects = this._createEntryObjects(this.calendar_entries);
-      this.setEntries(entry_objects);
-      this.entries = this._checkOffsets(this.entries);
     },
 
     monthHeader(moment) {

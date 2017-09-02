@@ -1,6 +1,6 @@
 <template>
   <div>
-    <calendar v-bind:calendar_entries="calendar_entries" v-bind:initial_options="options"></calendar>
+    <calendar></calendar>
     <div class="modal" v-bind:class="modal.class_obj">
       <div class="modal-background"></div>
       <div class="modal-card">
@@ -39,6 +39,7 @@
 @import './assets/sass/dot-trail.scss';
 </style>
 <script>
+var _ = require('lodash');
 var moment = require('moment');
 import { mapActions, mapGetters } from 'vuex'
 import calendar from './components/calendar/Calendar'
@@ -53,95 +54,76 @@ onRangeSelect
 ****/
 export default {
 
-  components: {
-    calendar
-  },
-
-  computed: {
-    ...mapGetters([
-      'entries', 'normalized_entries'
-    ])
-  },
+  components: { calendar },
 
   data() {
     return {
       counter: 0,
 
       form: {
-        entry: {
-          from: '',
-          to: '',
-          name: '',
-        },
         errors: [ ],
+        entry: { from: '', to: '', name: '' },
       },
 
       modal: {
-        class_obj: {
-          modal: true,
-          'is-active': false,
-        }
+        class_obj: { modal: true, 'is-active': false }
       },
-      calendar_entries: [{
-        title: 'Long ass fucking name',
-        start: '2017-08-09 15:00',
-        end: '2017-08-10 18:00',
+
+    }
+  },
+
+  methods: {
+
+    ...mapActions([ 'setOptions', 'setEntries', 'addEntries', 'removeEntriesByGuids' ]),
+
+    saveEntry() {
+      this.form.errors = [ ];
+      var name = this.form.entry.name.trim();
+      var from = this.form.entry.from.trim();
+      var to = this.form.entry.to.trim();
+      if(!name.length || !from.length || !to.length) {
+        this.form.errors.push('Please fill in all the fields!');
+        return;
+      }
+
+      this.addEntries([{
+        title: name,
+        start: moment(from, 'DD.MM.YYYY HH:mm').format('YYYY-MM-DD HH:mm'),
+        end: moment(to, 'DD.MM.YYYY HH:mm').format('YYYY-MM-DD HH:mm'),
         styles: {
           color: '#FFFFFF',
           background: 'rgba(255, 100, 0, 0.68)',
         }
-       },
-       {
-        title: 'Long ass fucking name2',
-        start: '2017-08-09 15:00',
-        end: '2017-08-10 18:00',
-        styles: {
-          color: '#FFFFFF',
-          background: 'rgba(255, 0, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Text text',
-        start: '2017-08-10 15:00',
-        end: '2017-08-11 18:00',
-        styles: {
-          background: 'rgba(155, 200, 0, 0.68)',
-        }
-       },
-       {
-        title: 'Paikka 1',
-        start: '2017-08-11 15:00',
-        end: '2017-08-12 18:00',
-        styles: {
-          background: 'rgba(155, 0, 155, 0.68)',
-        }
-       }
-      ],
-      options: {
+      }]);
+      this.modal.class_obj['is-active'] = false;
+    }
+
+  },
+
+
+  created() {
+
+    this.setOptions({
         locale: 'fi',
+        type: 'week',
         entry_limit: 3,
         theme: 'original',
         day_start: '07:00',
         day_end: '23:59:59',
+        hour_interval: '00:30:00',
         prev_nav: '<i class="fa fa-angle-left"></i>',
         next_nav: '<i class="fa fa-angle-right"></i>',
-        type: 'month',
         format: {
-          time: 'HH:mm',
-          date: 'L'
+          date: 'L',
+          time: 'HH:mm'
         },
-        breakpoints: {
-          767: { type: 'week' },
-          640: { type: 'day' }
-        },
+        breakpoints: { 767: { type: 'week' }, 640: { type: 'day' } },
         events: { move: true, select: true, resize: true },
         property_names: {
           en: { day: 'Day', week: 'Week', month: 'Month' },
           fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
         },
-        hour_interval: '01:00:00',
         onRangeSelect: (start, end) => {
-
           this.modal.class_obj['is-active'] = true;
           this.modal.title = 'Create new Entry';
 
@@ -198,14 +180,7 @@ export default {
           remove.innerHTML = '<i class="fa fa-trash"></i>';
           remove.addEventListener('click', function(e) {
             e.preventDefault(); e.stopPropagation();
-            var new_entries = [ ];
-            var guid = this.getAttribute('href');
-            for(var e in self.normalized_entries) {
-              if(self.normalized_entries[e].guid != guid) {
-                new_entries.push(self.normalized_entries[e]);
-              }
-            }
-            self.calendar_entries = new_entries;
+            self.removeEntriesByGuids([ this.getAttribute('href') ]);
             var old = document.getElementById('entry-overview');
             if(old) {
               old.remove();
@@ -220,34 +195,27 @@ export default {
           entry_overview.appendChild(toolbox);
           parent.appendChild(entry_overview);
         }
-      }
-    }
-  },
-  methods: {
-    saveEntry() {
-      this.calendar_entries = this.normalized_entries;
+    });
 
-      this.form.errors = [ ];
-
-      var name = this.form.entry.name.trim();
-      var from = this.form.entry.from.trim();
-      var to = this.form.entry.to.trim();
-      if(!name.length || !from.length || !to.length) {
-        this.form.errors.push('Please fill in all the fields!');
-        return;
-      }
-
-      this.calendar_entries.push({
-        title: name,
-        start: moment(from, 'DD.MM.YYYY HH:mm').format('YYYY-MM-DD HH:mm'),
-        end: moment(to, 'DD.MM.YYYY HH:mm').format('YYYY-MM-DD HH:mm'),
+    this.setEntries([{
+        title: 'Text text',
+        start: '2017-08-31 15:00',
+        end: '2017-09-01 18:00',
         styles: {
-          color: '#FFFFFF',
-          background: 'rgba(255, 100, 0, 0.68)',
+          background: 'rgba(155, 200, 0, 0.68)',
         }
-      });
-      this.modal.class_obj['is-active'] = false;
-    }
+       },
+       {
+        title: 'Paikka 1',
+        start: '2017-08-31 15:00',
+        end: '2017-08-31 18:00',
+        styles: {
+          background: 'rgba(155, 0, 155, 0.68)',
+        }
+       }
+    ]);
+
   }
+
 }
 </script>

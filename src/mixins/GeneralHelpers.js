@@ -2,11 +2,6 @@ export default {
 
 	methods: {
 
-	  _guid() {
-	    function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
-	    return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
-	  },
-
 	  _clone(obj) {
 	    if (null == obj || "object" != typeof obj) return null;
 	    var copy = {  };
@@ -15,6 +10,11 @@ export default {
 	    }
 	    return copy;
 	  },
+
+	  _guid() {
+		  function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
+		  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+		},
 
 		_getElementFromMousePosition(x, y, obscuring_element) {
 		  if(obscuring_element) {
@@ -38,9 +38,9 @@ export default {
       return time;
     },
 
-    _longFormat(moment) {
-      return moment.format('YYYY') + '-' + moment.format('MM') + '-' + moment.format('DD') + ' ' + moment.format('HH')+ ':' + moment.format('mm')
-    },
+		_longFormat(moment) {
+		  return moment.format('YYYY') + '-' + moment.format('MM') + '-' + moment.format('DD') + ' ' + moment.format('HH')+ ':' + moment.format('mm')
+		},
 
 		_merge_options(obj1, obj2) {
 		    var obj3 = { };

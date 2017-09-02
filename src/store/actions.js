@@ -1,3 +1,5 @@
+import getters from './getters';
+
 export default {
 
 	setSelectedDate: ({ commit }, date) => {
@@ -22,12 +24,19 @@ export default {
 
 	setEntries: ({ commit }, entries) => {
 		commit('STORE_ENTRIES', entries)
-		commit('SORT_ENTRIES')
 	},
 
-	appendEntries: ({ commit }, entries) => {
-		commit('APPEND_ENTRIES', entries)
-	},
+	addEntries: ({ commit }, entries) => {
+    commit('ADD_ENTRIES', entries)
+  },
+
+  updateEntries: ({ commit }, entries) => {
+    commit('UPDATE_ENTRIES', entries)
+  },
+
+  removeEntriesByGuids: ({ commit }, guids) => {
+    commit('REMOVE_ENTRIES_BY_GUIDS', guids)
+  },
 
 	backupEntry: ({ commit }, entry) => {
 		commit('BACKUP_ENTRY', entry)
@@ -35,18 +44,6 @@ export default {
 
 	restoreEntries: ({ commit }) => {
 		commit('RESTORE_BACKUPS')
-	},
-
-	activateEntry: ({ commit }, entry) => {
-		commit('ACTIVATE_ENTRY', entry)
-	},
-
-	removeActiveEntries: ({ commit }) => {
-		commit('REMOVE_ACTIVE_ENTRIES')
-	},
-
-	deleteEntryByGuid: ({ commit }, guid) => {
-		// commit('DELETE_ENTRY_BY_GUID')
 	},
 
 	activateDay: ({ commit }, entry) => {
@@ -80,9 +77,5 @@ export default {
 	resetEvents: ({ commit }) => {
 		commit('RESET_EVENTS')
 	},
-
-	resetActiveEntries: ({ commit }) => {
-		commit('RESET_ACTIVE_ENTRIES')
-	}
 
 }

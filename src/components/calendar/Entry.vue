@@ -26,7 +26,7 @@ export default {
 
 	computed: {
     ...mapGetters([
-      'drag_event_entry', 'drag_on_date', 'options', 'originEntry'
+      'drag_event_entry', 'drag_on_date', 'options', 'originEntry', 'normalize_entry'
     ])
 	},
 
@@ -58,22 +58,14 @@ export default {
 			img.src = './src/assets/image/ghost.png';
 			e.dataTransfer.setDragImage(img, 10, 10);
 
-			let entry = this.originEntry(this.entry);
-
-			if(!entry) {
-				return;
-			}
-
-			this.backupEntry(entry);
+			let entry = this.entry;
+			this.backupEntry(this.normalize_entry(this.entry));
 
 			if(e.target.classList.contains('vxc-resizer')) {
 				this.setResizingEvent(true);
 			} else {
 				this.setMovingEvent(true);
 			}
-
-			this.resetActiveEntries();
-			this.activateEntry(entry);
 
 			this.setDragEventEntry(entry);
 			this.setDragEventOriginDate(this.$parent.day); // Find day object from store with the timestamp

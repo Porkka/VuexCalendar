@@ -55,13 +55,12 @@ export default {
   computed: {
     ...mapGetters([
       'moving', 'resizing', 'selecting', 'entries', 'time_ranges', 'date', 'options', 'targetDay', 'dayByTimestamp', 'dayTimeByTimestamp',
-      'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date', 'normalize_entry'
+      'drag_event_entry', 'drag_event_origin_date', 'drag_event_on_date', 'normalize_entry', 'get_attributes'
     ]),
     day_entries: function() {
       let entries = [ ];
       this.has_overflow = false;
       var day_format = this.day.start.format('X');
-      // console.log('Getting day entries from the collection...');
       for(let e in this.entries) {
         let start = this.entries[ e ].from.clone().format('X');
         if(this._isMonth()) {
@@ -74,7 +73,6 @@ export default {
           entries.push(this.entries[ e ]);
         }
       }
-      // console.log('Done getting entries');
       return entries;
     }
   },
@@ -96,22 +94,18 @@ export default {
   methods: {
 
     ...mapActions([
-      'activateEntry', 'setDragEventOnDate', 'sortEntries',
-      'resetEvents', 'setSelectingEvent', 'selectDayRange', 'removeActiveEntries',
-      'restoreEntries', 'appendEntries', 'resetActiveEntries', 'setDragEventOriginDate'
+      'setDragEventOnDate', 'resetEvents', 'setSelectingEvent', 'selectDayRange',
+      'restoreEntries', 'updateEntries', 'setDragEventOriginDate'
     ]),
 
     onDrag(e) {
     },
 
     onDragstart(e) {
-
       let img = new Image();
       img.src = './src/assets/image/ghost.png';
       e.dataTransfer.setDragImage(img, 10, 10);
       this.setSelectingEvent(true);
-
-      this.resetActiveEntries();
       this.setDragEventOriginDate(this.day); // Find day object from store with the timestamp
     },
 
@@ -121,18 +115,16 @@ export default {
         if(self.options.onEntryResize()) {
           self.resetEvents();
         } else {
-          self.removeActiveEntries();
           self.restoreEntries();
         }
       } else if(self.moving) {
         if(self.options.onEntryMove()) {
           self.resetEvents();
         } else {
-          self.removeActiveEntries();
           self.restoreEntries();
         }
       } else if(this.selecting) {
-        if(typeof(this.options.onRangeSelect) == 'function') {
+          if(typeof(this.options.onRangeSelect) == 'function') {
           if(this.drag_event_origin_date.start.format('X') < this.drag_event_on_date.end.format('X')) {
             this.options.onRangeSelect(this.drag_event_origin_date, this.drag_event_on_date);
           } else {
@@ -143,8 +135,6 @@ export default {
         }
         self.resetEvents();
       }
-      self.sortEntries();
-      this._checkOffsets(this.entries);
     },
 
     onClick(e) {
@@ -218,9 +208,7 @@ export default {
 
       if(!this.moving) {
         return;
-      }
-
-      if(!this.drag_event_entry || !this.drag_event_origin_date || !this.drag_event_on_date) {
+      } else if(!this.drag_event_entry || !this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
 
@@ -235,7 +223,6 @@ export default {
       if(this._isMonth()) {
         start.hours(entry.from.hours());
         end.hours(entry.to.hours());
-        // start = start.hours(old_start.hours()).minutes(old_start.minutes()).seconds(old_start.seconds());
       }
 
       if(this._isWeek() && start.day() < end.day() && (end.hours() || end.minutes()) ) {
@@ -248,13 +235,8 @@ export default {
       entry.start = this._longFormat(start);
       entry.from = start;
       entry.to = end;
-      let entries = this._createEntryObjects([ entry ]);
 
-      this.removeActiveEntries();
-      for(let e in entries) {
-        this.activateEntry(entries[ e ]);
-      }
-      this.appendEntries(entries);
+      this.updateEntries([ this.get_attributes(entry) ]);
     },
 
     _doEntryResize() {
@@ -268,7 +250,6 @@ export default {
 
       var self = this;
       let entry = _.cloneDeep(self.drag_event_entry),
-      guid = entry.guid,
       old_start = moment(entry.start),
       old_end = moment(entry.end),
       start = moment(entry.start),
@@ -291,14 +272,7 @@ export default {
       }
 
       entry.end = self._longFormat(end);
-
-      let entries = self._createEntryObjects([ entry ]);
-      self.removeActiveEntries();
-      for(let e in entries) {
-        self.activateEntry(entries[ e ]);
-      }
-
-      self.appendEntries(entries);
+      this.updateEntries([ this.get_attributes(entry) ]);
     },
 
     _doDaySelect() {

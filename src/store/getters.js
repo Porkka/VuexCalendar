@@ -19,7 +19,6 @@ export default {
 		return state.events.resizing
 	},
 
-
 	drag_event_origin_date: (state) => {
 		return state.event_data.drag.origin_date
 	},
@@ -32,13 +31,13 @@ export default {
 		return state.event_data.drag.entry
 	},
 	normalized_entries: (state, getters) => {
-		var normalized = [ ];
-		for(let e in state.entries) {
-			if(!state.entries[e].origin_guid) {
-				// Push normalized
-				normalized.push(getters.normalize_entry(state.entries[e]));
-			}
-		}
+    var normalized = [ ];
+    for(let e in state.entries) {
+      let guids = _.map(normalized, 'guid');
+      if(guids.indexOf(state.entries[e].guid) == -1) {
+        normalized.push(getters.normalize_entry(state.entries[e]));
+      }
+    }
 		return normalized;
 	},
 	concatenate_entry: (state) => {
@@ -46,10 +45,14 @@ export default {
 		return function(entry) {
 			var e = _.cloneDeep(entry);
 			for(let ee in state.entries) {
-				if(state.entries[ ee ].origin_guid == e.guid) {
+				if(state.entries[ ee ].guid == e.guid) {
 					if(state.entries[ ee ].to.format('X') > e.to.format('X')) {
 						e.to = state.entries[ ee ].to;
 						e.end = state.entries[ ee ].end;
+					}
+					if(state.entries[ ee ].from.format('X') < e.from.format('X')) {
+						e.from = state.entries[ ee ].from;
+						e.start = state.entries[ ee ].start;
 					}
 				}
 			}
@@ -58,19 +61,32 @@ export default {
 	},
 	normalize_entry: (state, getters) => {
 		return function(entry) {
-			if(entry.origin_guid) { // Get the origin guid
-				var e = getters.concatenate_entry( getters.entryByGuid(entry.origin_guid) );
-			} else {
-				var e = getters.concatenate_entry(entry);
-			}
+			var e = getters.concatenate_entry(entry);
 			return {
+				guid: e.guid,
 				from: e.from,
 				to: e.to,
 				start: e.start,
 				end:  e.end,
 				title: e.title,
 				styles: e.styles,
-				guid: e.guid,
+				classes: e.classes,
+				attributes: e.attributes,
+			};
+		};
+	},
+	get_attributes: (state, getters) => {
+		return function(entry) {
+			return {
+				guid: entry.guid,
+				from: entry.from,
+				to: entry.to,
+				start: entry.start,
+				end:  entry.end,
+				title: entry.title,
+				styles: entry.styles,
+			  classes: entry.classes,
+				attributes: entry.attributes,
 			};
 		};
 	},
