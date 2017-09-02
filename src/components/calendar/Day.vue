@@ -117,13 +117,13 @@ export default {
       }
 
       if(self.resizing) {
-        if(self.options.onEntryResize()) {
+        if(self.options.onEntryResize(this.normalize_entry(this.drag_event_entry))) {
           self.resetEvents();
         } else {
           self.restoreEntries();
         }
       } else if(self.moving) {
-        if(self.options.onEntryMove()) {
+        if(self.options.onEntryMove(this.normalize_entry(this.drag_event_entry))) {
           self.resetEvents();
         } else {
           self.restoreEntries();

@@ -136,6 +136,22 @@ export default {
           }, 400);
 
         },
+        onEntryMove: (entry) => {
+          let result = confirm('Are you sure you want to update this entry?');
+          if(result) {
+            // ... http request
+            console.log('Updating entry with guid ', entry.guid, ' in database.');
+          }
+          return result;
+        },
+        onEntryResize: (entry) => {
+          let result = confirm('Are you sure you want to update this entry?');
+          if(result) {
+            // ... http request
+            console.log('Updating entry with guid ', entry.guid, ' in database.');
+          }
+          return result;
+        },
         onEntryClick: (entry, node) => {
           var self = this;
 
