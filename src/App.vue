@@ -35,14 +35,13 @@
   </div>
 </template>
 <style lang="scss">
-@import './assets/sass/general.scss';
 @import './assets/sass/dot-trail.scss';
 </style>
 <script>
 var _ = require('lodash');
 var moment = require('moment');
 import { mapActions, mapGetters } from 'vuex'
-import calendar from './components/calendar/Calendar'
+import calendar from './components/calendars/Normal'
 /**** 
 == Callback ==
 
@@ -105,9 +104,8 @@ export default {
 
     this.setOptions({
         locale: 'fi',
-        type: 'week',
-        entry_limit: 3,
-        theme: 'original',
+        type: 'month',
+        // entry_limit: 3,
         day_start: '07:00',
         day_end: '23:59:59',
         hour_interval: '00:30:00',
@@ -117,41 +115,41 @@ export default {
           date: 'L',
           time: 'HH:mm'
         },
-        breakpoints: { 767: { type: 'week' }, 640: { type: 'day' } },
-        events: { move: true, select: true, resize: true },
+        // breakpoints: { 767: { type: 'week' }, 640: { type: 'day' } },
+        // events: { move: true, select: true, resize: true },
         property_names: {
           en: { day: 'Day', week: 'Week', month: 'Month' },
           fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
         },
-        onRangeSelect: (start, end) => {
-          this.modal.class_obj['is-active'] = true;
-          this.modal.title = 'Create new Entry';
+        // onRangeSelect: (start, end) => {
+        //   this.modal.class_obj['is-active'] = true;
+        //   this.modal.title = 'Create new Entry';
 
-          this.form.entry.name = '';
-          this.form.entry.from = start.start.format('L HH:mm');
-          this.form.entry.to = end.end.format('L HH:mm');
+        //   this.form.entry.name = '';
+        //   this.form.entry.from = start.start.format('L HH:mm');
+        //   this.form.entry.to = end.end.format('L HH:mm');
 
-          setTimeout(function( ) {
-            document.getElementById('vxc-entry-name').focus();
-          }, 400);
+        //   setTimeout(function( ) {
+        //     document.getElementById('vxc-entry-name').focus();
+        //   }, 400);
 
-        },
-        onEntryMove: (entry) => {
-          let result = confirm('Are you sure you want to update this entry?');
-          if(result) {
-            // ... http request
-            console.log('Updating entry with guid ', entry.guid, ' in database.');
-          }
-          return result;
-        },
-        onEntryResize: (entry) => {
-          let result = confirm('Are you sure you want to update this entry?');
-          if(result) {
-            // ... http request
-            console.log('Updating entry with guid ', entry.guid, ' in database.');
-          }
-          return result;
-        },
+        // },
+        // onEntryMove: (entry) => {
+        //   let result = confirm('Are you sure you want to update this entry?');
+        //   if(result) {
+        //     // ... http request
+        //     console.log('Updating entry with guid ', entry.guid, ' in database.');
+        //   }
+        //   return result;
+        // },
+        // onEntryResize: (entry) => {
+        //   let result = confirm('Are you sure you want to update this entry?');
+        //   if(result) {
+        //     // ... http request
+        //     console.log('Updating entry with guid ', entry.guid, ' in database.');
+        //   }
+        //   return result;
+        // },
         onEntryClick: (entry, node) => {
           var self = this;
 
