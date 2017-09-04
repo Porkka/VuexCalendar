@@ -256,7 +256,8 @@ export default {
       }
 
       var self = this;
-      let entry = _.cloneDeep(self.drag_event_entry),
+      let normalized_entry = this.normalize_entry(this.drag_event_entry);
+      let entry = _.cloneDeep(normalized_entry),
       old_start = moment(entry.start),
       old_end = moment(entry.end),
       start = moment(entry.start),
