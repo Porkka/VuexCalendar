@@ -38,8 +38,8 @@
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import entry from '../Entries/Normal'
-import entryPopup from '../EntryPopup'
+import entry from './Entry'
+import entryPopup from './EntryPopup'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
 var moment = require('moment');

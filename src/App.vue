@@ -41,7 +41,7 @@
 var _ = require('lodash');
 var moment = require('moment');
 import { mapActions, mapGetters } from 'vuex'
-import calendar from './components/calendars/Normal'
+import calendar from './components/simple-mobile/Calendar'
 /**** 
 == Callback ==
 
@@ -221,7 +221,31 @@ export default {
        },
        {
         title: 'Paikka 1',
-        start: '2017-08-31 15:00',
+        start: '2017-08-31 15:02',
+        end: '2017-08-31 18:00',
+        styles: {
+          background: 'rgba(155, 0, 155, 0.68)',
+        }
+       },
+       {
+        title: 'Paikka 1',
+        start: '2017-08-31 15:02',
+        end: '2017-08-31 18:00',
+        styles: {
+          background: 'rgba(155, 0, 155, 0.68)',
+        }
+       },
+       {
+        title: 'Paikka 1',
+        start: '2017-08-31 15:02',
+        end: '2017-08-31 18:00',
+        styles: {
+          background: 'rgba(155, 0, 155, 0.68)',
+        }
+       },
+       {
+        title: 'Paikka 1',
+        start: '2017-08-31 15:02',
         end: '2017-08-31 18:00',
         styles: {
           background: 'rgba(155, 0, 155, 0.68)',

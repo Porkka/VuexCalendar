@@ -1,48 +1,64 @@
 <template>
   <div v-bind:class="classObj">
-    <table class="vxc-main-table">
-      <tr class="heading-row">
-        <th colspan="9">
-          <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
-          <span class="vxc-title" v-html="this.title"></span>
-          <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
-          <div class="vxc-tools">
-            <div class="field">
-              <div class="control">
-                <div class="select">
-                  <select v-model="options.type">
-                    <option value="month">Month</option>
-                    <option value="week">Week</option>
-                    <option value="day">Day</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </th>
-      </tr>
-      <tr class="heading-row day-name-row" v-if="!_isDay()">
-        <th class="entry-row" v-if="!_isMonth()"></th>
-        <th v-for="header in headers" v-bind:class="[header.classes, 'day-title']" v-html="header.text" v-if="!_isDay()"></th>
-      </tr>
-      <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
-        <time-slot v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:onRangeselect="rangeSelect"></time-slot>
-      </tr>
-      <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
-        <td v-text="time.text"></td>
-        <time-slot v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:onRangeselect="rangeSelect"></time-slot>
-      </tr>
-    </table>
+    <div class="calendar-container">
+      <table class="vxc-main-table">
+        <tr class="heading-row">
+          <th colspan="7">
+            <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
+            <span class="vxc-title" v-html="this.title"></span>
+            <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
+          </th>
+        </tr>
+        <tr class="heading-row day-name-row" v-if="!_isDay()">
+          <th class="entry-row" v-if="!_isMonth()"></th>
+          <th v-for="header in headers" v-bind:class="[header.classes, 'day-title']" v-html="header.text" v-if="!_isDay()"></th>
+        </tr>
+        <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
+          <time-slot v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:daySelected="daySelected"></time-slot>
+        </tr>
+        <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
+          <td v-text="time.text"></td>
+          <time-slot v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:daySelected="daySelected"></time-slot>
+        </tr>
+      </table>
+    </div>
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
+    <div class="vxc-tools">
+      <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]">Month</a>
+      <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]">Week</a>
+      <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]">Day</a>
+    </div>
+    <div class="vxc-selected-date">
+      {{ date.format('L') }}
+    </div>
+    <ul class="vxc-entries">
+      <li v-for="(entry, k) in date_entries">
+        <entry 
+        v-bind:key="k" 
+        v-on:entryClick="entrySelected"
+        v-bind:entry="entry"></entry>
+      </li>
+    </ul>
+    <transition
+    name="custom-classes-transition"
+    enter-active-class="animated tada"
+    leave-active-class="animated bounceOutRight"
+    >
+    <entry-overview v-bind:entry="entry" v-if="entry"></entry-overview>
+    </transition>
   </div>
 </template>
+
 <style lang="scss">
-@import '../../assets/sass/normal.scss';
+@import '../../../node_modules/animate.css/animate.min.css';
+@import '../../assets/sass/simple-mobile.scss';
 </style>
 <script>
-import time_slot from '../Slots/Normal'
+import entry from './Entry'
+import time_slot from './Slot'
+import entry_overview from './EntryOverview'
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
@@ -53,7 +69,9 @@ var moment = require('moment');
 export default {
 
   components: {
-    'time-slot': time_slot
+    'entry': entry,
+    'time-slot': time_slot,
+    'entry-overview': entry_overview
   },
 
   mixins: [ helpers, calendar_helpers ],
@@ -66,6 +84,10 @@ export default {
   },
 
   watch: {
+    date: function() {
+      this.renderCalendar();
+      this.renderEntries();
+    },
     type: function() {
       // Reset type class
       this.classObj.day = this.classObj.week = this.classObj.month = false;
@@ -84,14 +106,16 @@ export default {
   data() {
     return {
       title: '',
-      date: null,
       times: [ ],
-      timer: null,
+      date: null,
+      entry: null,
       headers: [ ],
       loading: false,
+      date_entries: [ ],
       initial_date: null,
+      selected_date: null,
       initial_options: null,
-      classObj: { 'vuex-calendar': true },
+      classObj: { 'vuex-calendar': true, 'simple-mobile': true },
     }
   },
 
@@ -103,28 +127,18 @@ export default {
     }
 
     this.initial_options = _.cloneDeep(this.options);
-    this.date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
-    this.initial_date = this.options.selected_date ? moment(this.options.selected_date).locale(this.options.locale) : moment().locale(this.options.locale);
 
+    this.initial_date = this.options.selected_date ? this.options.selected_date : moment();
+    this.date = this.initial_date.clone();
     this.date.locale(this.options.locale);
-    this.setSelectedDate(this.date);
 
     this.renderCalendar();
-
-    window.addEventListener('resize', this.handleResize)
+    this.renderEntries();
   },
 
   methods: {
 
     ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'refreshEntries' ]),
-
-    handleResize() {
-      var self = this;
-      clearTimeout(self.timer);
-      self.timer = setTimeout(function() {
-        self._checkBreakpoints();
-      }, 300);
-    },
 
     _createTimes() {
 
@@ -171,9 +185,11 @@ export default {
     },
 
     _createMonth() {
-      var date_now = this.date.format('l'),
-        stamp_now = this.date.format('X'),
-        month_no_now = this.date.format('M'),
+      var date_clone = this.date.clone();
+      date_clone.hours(0).minutes(0).seconds(0);
+      var date_now = date_clone.format('l'),
+        stamp_now = date_clone.format('X'),
+        month_no_now = date_clone.format('M'),
         week = { ranges: [ ] }, weeks = [ ];
       for(var t in this.times) {
 
@@ -212,8 +228,7 @@ export default {
         }
 
         // Today class
-        if(this.times[t].format('l') == this.initial_date.format('l')) {
-          // console.log(this.times[t].format('l'));
+        if(this.times[t].format('l') == date_clone.format('l')) {
           day.classes['today'] = true;
         }
 
@@ -312,6 +327,13 @@ export default {
       return [ week ];
     },
 
+    daySelected(date) {
+      this.date = date.start;
+    },
+    entrySelected(entry) {
+      this.entry = entry;
+    },
+
     prev() {
       this.loading = true;
       var el = document.getElementById('prev');
@@ -371,29 +393,6 @@ export default {
     },
 
 /*** HELPERS ***/
-    _checkBreakpoints() {
-      // Hunt for breakpoints
-      var min_width = null;
-      var cw = window.innerWidth;
-      for(var w in this.options.breakpoints) {
-          w = parseInt(w);
-          if(( cw <= w && min_width == null ) || ( w < min_width && min_width != null )) {
-              min_width = w;
-          }
-      }
-
-      // If we got min_width => Set new options and rerender the calendar
-      if(min_width) {
-          var options = this._merge_options(this.options, this.options.breakpoints[ min_width ]);
-      } else {
-          var options = this.initial_options;
-      }
-
-      this.classObj['day'] = this.classObj['week'] = this.classObj['month'] = false;
-      this.classObj[options.type] = true;
-      this.setOptions(options);
-    },
-
     renderCalendar() {
       this.times = this._createTimes();
       if(this._isMonth()) {
@@ -405,6 +404,23 @@ export default {
       this.title = this.calendarTitle(clone);
       this.headers = this.calendarHeaders(clone);
       this.setTimeRanges(calendar_dates);
+    },
+
+    renderEntries() {
+
+      let entries = [ ];
+      var day_format = this.date.format('X');
+      for(let e in this.entries) {
+        let start = this.entries[ e ].from.clone().format('X');
+        if(this._isMonth()) {
+          start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
+        }
+        if(start == day_format) {
+      console.log(this.entries[ e ]);
+          entries.push(this.entries[ e ]);
+        }
+      }
+      this.date_entries = entries;
     },
 
     monthHeader(moment) {

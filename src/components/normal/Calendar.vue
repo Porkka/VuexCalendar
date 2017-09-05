@@ -2,10 +2,23 @@
   <div v-bind:class="classObj">
     <table class="vxc-main-table">
       <tr class="heading-row">
-        <th colspan="7">
+        <th colspan="9">
           <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
           <span class="vxc-title" v-html="this.title"></span>
           <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
+          <div class="vxc-tools">
+            <div class="field">
+              <div class="control">
+                <div class="select">
+                  <select v-model="options.type">
+                    <option value="month">Month</option>
+                    <option value="week">Week</option>
+                    <option value="day">Day</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         </th>
       </tr>
       <tr class="heading-row day-name-row" v-if="!_isDay()">
@@ -20,22 +33,16 @@
         <time-slot v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:onRangeselect="rangeSelect"></time-slot>
       </tr>
     </table>
-    <div class="vxc-tools">
-      <a colspanhref="month">Month</a>
-      <a href="week">Week</a>
-      <a href="day">Day</a>
-    </div>
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
   </div>
 </template>
-
 <style lang="scss">
-@import '../../assets/sass/simple-mobile.scss';
+@import '../../assets/sass/normal.scss';
 </style>
 <script>
-import time_slot from '../Slot'
+import time_slot from './Slot'
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
@@ -46,7 +53,7 @@ var moment = require('moment');
 export default {
 
   components: {
-    'time-slot': time_slot, 'entry': entry
+    'time-slot': time_slot
   },
 
   mixins: [ helpers, calendar_helpers ],
@@ -84,7 +91,7 @@ export default {
       loading: false,
       initial_date: null,
       initial_options: null,
-      classObj: { 'vuex-calendar': true, 'simple-mobile': true },
+      classObj: { 'vuex-calendar': true },
     }
   },
 
@@ -103,11 +110,21 @@ export default {
     this.setSelectedDate(this.date);
 
     this.renderCalendar();
+
+    window.addEventListener('resize', this.handleResize)
   },
 
   methods: {
 
     ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'refreshEntries' ]),
+
+    handleResize() {
+      var self = this;
+      clearTimeout(self.timer);
+      self.timer = setTimeout(function() {
+        self._checkBreakpoints();
+      }, 300);
+    },
 
     _createTimes() {
 
@@ -354,6 +371,29 @@ export default {
     },
 
 /*** HELPERS ***/
+    _checkBreakpoints() {
+      // Hunt for breakpoints
+      var min_width = null;
+      var cw = window.innerWidth;
+      for(var w in this.options.breakpoints) {
+          w = parseInt(w);
+          if(( cw <= w && min_width == null ) || ( w < min_width && min_width != null )) {
+              min_width = w;
+          }
+      }
+
+      // If we got min_width => Set new options and rerender the calendar
+      if(min_width) {
+          var options = this._merge_options(this.options, this.options.breakpoints[ min_width ]);
+      } else {
+          var options = this.initial_options;
+      }
+
+      this.classObj['day'] = this.classObj['week'] = this.classObj['month'] = false;
+      this.classObj[options.type] = true;
+      this.setOptions(options);
+    },
+
     renderCalendar() {
       this.times = this._createTimes();
       if(this._isMonth()) {

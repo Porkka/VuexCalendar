@@ -1,3 +1,4 @@
+var moment = require('moment');
 export default {
 
   options: {
@@ -9,7 +10,7 @@ export default {
     day_end: '23:59',
     prev_nav: '&laquo;',
     next_nav: '&raquo;',
-    selected_date: null,
+    selected_date: moment(),
     format: {
       time: 'hh:mm a',
       date: 'L'

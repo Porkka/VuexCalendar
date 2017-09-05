@@ -1,24 +1,65 @@
 .vuex-calendar.simple-mobile {
 
   position: relative;
+  background-color: #F7F7F7;
   font-family: 'Quicksand', sans-serif;
 
-  .entry {
-    z-index: 9;
-    color: #FFFFFF;
-    padding: 0 4px;
-    cursor: pointer;
-    overflow: hidden;
-    user-select: none;
+  h3.page-heading {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .calendar-container {
+    padding: 0 5px;
+  }
+
+  .entry-indicator {
+    width: 5px;
+    height: 5px;
+    display: block;
     position: absolute;
-    border-radius: 3px;
+    border-radius: 50%;
+    top: 5px; right: 8px;
+    background-color: red;
+  }
+
+  .vxc-entries {
+    height: 25vh;
+    position: relative;
+    padding-left: 60px;
+    background-color: #FFFFFF;
+  }
+  .vxc-entries:before {
+    width: 1px;
+    left: 10px;
+    content: '';
+    display: block;
+    height: inherit;
+    position: absolute;
+    background-color: #DEDEDE;
+  }
+
+  .entry {
+    padding: 6px 4px;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
     white-space: nowrap;
+    top: auto !important;
+    left: auto !important;
     transition: 0.15s all;
     box-sizing: border-box;
+    width: 100% !important;
+    height: auto !important;
     text-overflow: ellipsis;
+    color: #636363 !important;
+    background: #FFFFFF !important;
+    border-bottom: 1px solid #E6E6E6;;
 
-    &:hover {
-      opacity: 0.95;
+    .start {
+      left: -43px;
+      position: absolute;
     }
 
   }
@@ -26,12 +67,26 @@
   .vxc-tools {
     width: 100%;
     display: flex;
-    border-right: 1px solid #DEDEDE;
-    border-bottom: 1px solid #DEDEDE;
+    margin-top: 10px;
+    background-color: #FFFFFF;
     a {
       flex-grow: 1;
+      padding: 5px;
       text-align: center;
     }
+    a.active {
+      color: #FFFFFF;
+      background-color: #00DCD9;
+    }
+  }
+
+  .vxc-entry-overview {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    top: 0; left: 0;
+    position: absolute;
+    background-color: #FFFFFF;
   }
 
   .vxc-nav {
@@ -68,31 +123,44 @@
     justify-content: center;
   }
 
+  .vxc-selected-date {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 2px 5px;
+    background-color: #FFFFFF;
+    border-top: 1px solid #E6E6E6;
+    border-bottom: 1px solid #E6E6E6;
+  }
 
   table {
     width: 100%;
     border-collapse: collapse;
+    border-top: 1px solid #DEDEDE;
 
     th {
-      height: 20px;
+      padding: 5px 0;
       text-align: center;
+      border-bottom: 1px solid #DEDEDE;
     }
 
     td {
 
-      height: auto;
+      cursor: pointer;
+      padding: 4px 2px;
       user-select: none;
       position: relative;
-      padding: 0 0 0 10px;
-      border: 1px solid #DEDEDE;
-      transition: 0.15s background;
 
       .day-number {
-        margin: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        padding: 0 7px;
         color: #636363;
+        margin: 0 auto;
         font-weight: 600;
-        padding: 5px 8px;
-        text-align: right;
+        border-radius: 50%;
+        position: relative;
+        align-items: center;
       }
 
       /*** ===  MODIFIERS === ***/
@@ -104,15 +172,16 @@
         color: #424242;
         background-color: #D4D2D2;
       }
-      &.today {
-        background-color: #FFF2DC;
+      &.today .day-number {
+        color: #FFFFFF;
+        background-color: #22EFEC;
       }
-      &.prev-month,
-      &.next-month {
-        background-color: #F3F3F3;
+      &.prev-month .day-number,
+      &.next-month .day-number {
+        background-color: #F1F1F1;
       }
-      &.selected {
-        background-color: #B2F5FF !important;
+      &.selected .day-number {
+        background-color: #2DDAD7 !important;
       } /*** === /MODIFIERS === ***/
 
     } /** td **/
@@ -197,8 +266,8 @@
 
     table tr td  {
       padding: 0;
-      height: 40px;
       width: 94%;
+      height: 40px;
     
       &:first-child {
         width: 50px;
@@ -226,8 +295,6 @@
 
 .day-title {
   text-transform: uppercase;
-  background-color: #F3F3F3;
-  border: 1px solid #EAEAEA;
 
   &.today {
     background-color: #FFF2DC;
