@@ -1,13 +1,29 @@
-.vuex-calendar.simple-mobile {
+$primary-color: #9867DC;
+$secondary-color: #F99C40;
+$grey-color: #F7F7F7;
+
+$primary-text-color: #636363;
+$secondary-text-color: #FFFFFF;
+
+.vuex-calendar.mobile {
 
   position: relative;
-  background-color: #F7F7F7;
+  background-color: $grey-color;
   font-family: 'Quicksand', sans-serif;
 
-  h3.page-heading {
-    font-size: 18px;
-    font-weight: 600;
+  a {
+    color: $primary-text-color;
+  }
+
+  .heading {
+    padding: 5px 0;
+    font-size: 16px;
     text-align: center;
+    color: $secondary-text-color;
+    background-color: $primary-color;
+    a {
+      color: $secondary-text-color;
+    }
   }
 
   .calendar-container {
@@ -67,7 +83,9 @@
   .vxc-tools {
     width: 100%;
     display: flex;
+    position: fixed;
     margin-top: 10px;
+    bottom: 0; left: 0;
     background-color: #FFFFFF;
     a {
       flex-grow: 1;
@@ -76,17 +94,21 @@
     }
     a.active {
       color: #FFFFFF;
-      background-color: #00DCD9;
+      background-color: darken($primary-color, 20%);
     }
   }
 
   .vxc-entry-overview {
     width: 100%;
     height: 100%;
-    padding: 20px;
     top: 0; left: 0;
     position: absolute;
     background-color: #FFFFFF;
+
+    .overview {
+      padding: 20px;
+    }
+
   }
 
   .vxc-nav {
@@ -106,10 +128,6 @@
     &.next {
     }
 
-  }
-
-  .heading-row:first-of-type th {
-    padding: 5px 0;
   }
 
   .vxc-title {
@@ -135,8 +153,6 @@
   table {
     width: 100%;
     border-collapse: collapse;
-    border-top: 1px solid #DEDEDE;
-
     th {
       padding: 5px 0;
       text-align: center;
@@ -153,36 +169,26 @@
       .day-number {
         width: 40px;
         height: 40px;
-        display: flex;
-        padding: 0 7px;
+        display: block;
         color: #636363;
         margin: 0 auto;
         font-weight: 600;
+        line-height: 40px;
         border-radius: 50%;
         position: relative;
-        align-items: center;
+        text-align: center;
       }
 
       /*** ===  MODIFIERS === ***/
-      &.vxc-past span:not(.entry) {
-      }
-      &.vxc-prev-month span:not(.entry),
-      &.vxc-next-month span:not(.entry) {
-        opacity: 0.55;
-        color: #424242;
-        background-color: #D4D2D2;
-      }
       &.today .day-number {
         color: #FFFFFF;
-        background-color: #22EFEC;
+        background-color: $secondary-color;
       }
       &.prev-month .day-number,
       &.next-month .day-number {
-        background-color: #F1F1F1;
+        background-color: darken($grey-color, 2.5%); /*#F1F1F1;*/
       }
-      &.selected .day-number {
-        background-color: #2DDAD7 !important;
-      } /*** === /MODIFIERS === ***/
+      /*** === /MODIFIERS === ***/
 
     } /** td **/
 

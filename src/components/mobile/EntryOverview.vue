@@ -1,8 +1,10 @@
 <template>
   <div class="vxc-entry-overview">
-    <h3 class="page-heading">Näytä tapahtuma</h3>
-    <p>{{ entry.text }}</p>
-    <p>{{ entry.from.format('L HH:mm') + ' - ' + entry.to.format('L HH:mm') }}</p>
+    <div class="heading">Näytä tapahtuma</div>
+    <div class="overview">
+      <p>{{ entry.text }}</p>
+      <p>{{ entry.from.format('L HH:mm') + ' - ' + entry.to.format('L HH:mm') }}</p>
+    </div>
   </div>
 </template>
 <script>

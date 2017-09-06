@@ -1,6 +1,6 @@
 <template>
   <div>
-    <calendar></calendar>
+    <component :is="calendar"></component>
     <div class="modal" v-bind:class="modal.class_obj">
       <div class="modal-background"></div>
       <div class="modal-card">
@@ -41,7 +41,8 @@
 var _ = require('lodash');
 var moment = require('moment');
 import { mapActions, mapGetters } from 'vuex'
-import calendar from './components/simple-mobile/Calendar'
+import normal from './components/normal/Calendar'
+import mobile from './components/mobile/Calendar'
 /**** 
 == Callback ==
 
@@ -53,11 +54,11 @@ onRangeSelect
 ****/
 export default {
 
-  components: { calendar },
+  components: { normal: normal, mobile: mobile },
 
   data() {
     return {
-      counter: 0,
+      calendar: 'mobile',
 
       form: {
         errors: [ ],

@@ -1,14 +1,12 @@
 <template>
   <div v-bind:class="classObj">
+    <div class="heading">
+      <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
+      <span class="vxc-title" v-html="this.title"></span>
+      <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
+    </div>
     <div class="calendar-container">
       <table class="vxc-main-table">
-        <tr class="heading-row">
-          <th colspan="7">
-            <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
-            <span class="vxc-title" v-html="this.title"></span>
-            <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
-          </th>
-        </tr>
         <tr class="heading-row day-name-row" v-if="!_isDay()">
           <th class="entry-row" v-if="!_isMonth()"></th>
           <th v-for="header in headers" v-bind:class="[header.classes, 'day-title']" v-html="header.text" v-if="!_isDay()"></th>
@@ -25,11 +23,6 @@
     <div v-if="loading" class="loading-overlay">
       <div class="loader"></div>
     </div>
-    <div class="vxc-tools">
-      <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]">Month</a>
-      <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]">Week</a>
-      <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]">Day</a>
-    </div>
     <div class="vxc-selected-date">
       {{ date.format('L') }}
     </div>
@@ -41,10 +34,15 @@
         v-bind:entry="entry"></entry>
       </li>
     </ul>
+    <div class="vxc-tools">
+      <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]">Month</a>
+      <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]">Week</a>
+      <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]">Day</a>
+    </div>
     <transition
     name="custom-classes-transition"
-    enter-active-class="animated tada"
-    leave-active-class="animated bounceOutRight"
+    enter-active-class="animated slideInRight"
+    leave-active-class="animated slideOutRight"
     >
     <entry-overview v-bind:entry="entry" v-if="entry"></entry-overview>
     </transition>
@@ -115,7 +113,7 @@ export default {
       initial_date: null,
       selected_date: null,
       initial_options: null,
-      classObj: { 'vuex-calendar': true, 'simple-mobile': true },
+      classObj: { 'vuex-calendar': true, 'mobile': true },
     }
   },
 

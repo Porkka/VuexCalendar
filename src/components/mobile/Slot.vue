@@ -5,8 +5,7 @@
   v-bind:class="day.classes"
   v-bind:data-sanitized="day.sanitized"
   v-bind:data-timestamp="day.timestamp">
-  <span class="day-number" v-if="_isMonth()">
-    {{ day.text }}
+  <span class="day-number" v-if="_isMonth()">{{day.text}}
     <span class="entry-indicator" v-if="day_entries.length > 0"></span>
   </span>
 </td>
