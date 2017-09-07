@@ -1,11 +1,14 @@
 <template>
   <div v-bind:class="classObj">
+
+
     <div class="heading">
       <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
       <span class="vxc-title" v-html="this.title"></span>
       <a href="#" class="vxc-nav next" id="next" v-html="this.options.next_nav" @click.prevent="next"></a>
     </div>
-    <div class="calendar-container">
+
+    <div v-bind:class="calendar_container.classes">
       <table class="vxc-main-table">
         <tr class="heading-row day-name-row" v-if="!_isDay()">
           <th class="entry-row" v-if="!_isMonth()"></th>
@@ -20,13 +23,12 @@
         </tr>
       </table>
     </div>
-    <div v-if="loading" class="loading-overlay">
-      <div class="loader"></div>
-    </div>
-    <div class="vxc-selected-date">
-      {{ date.format('L') }}
-    </div>
-    <ul class="vxc-entries">
+
+
+    <ul v-bind:class="entry_list.classes"
+      draggable="true"
+      @dragstart.stop="calendar_container.classes.closed =! calendar_container.classes.closed">
+      <li class="vxc-selected-date">{{ date.format('L') }}</li>
       <li v-for="(entry, k) in date_entries">
         <entry 
         v-bind:key="k" 
@@ -35,17 +37,28 @@
       </li>
     </ul>
     <div class="vxc-tools">
-      <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]">Month</a>
-      <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]">Week</a>
-      <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]">Day</a>
+      <div v-if="!entry && !edit">
+        <a href="new" @click.prevent="create_new = true"><i class="fa fa-plus"></i><br>Uusi</a>
+        <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]"><i class="fa fa-calendar"></i><br>Kuukausi</a>
+        <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]"><i class="fa fa-calendar"></i><br>Viikko</a>
+        <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]"><i class="fa fa-clock-o"></i><br>Päivä</a>
+      </div>
+
+      <div v-if="entry">
+        <a href="new" @click.prevent="create_new = true"><i class="fa fa-plus"></i><br>Uusi</a>
+        <a href="edit" @click.prevent="edit = true"><i class="fa fa-pencil"></i><br>Muokkaa</a>
+        <a href="remove" @click.prevent="removeEntry()"><i class="fa fa-trash"></i><br>Poista</a>
+      </div>
+
     </div>
-    <transition
-    name="custom-classes-transition"
+
+    <transition name="custom-classes-transition"
     enter-active-class="animated slideInRight"
-    leave-active-class="animated slideOutRight"
-    >
-    <entry-overview v-bind:entry="entry" v-if="entry"></entry-overview>
+    leave-active-class="animated slideOutRight">
+    <entry-overview v-bind:entry="entry" v-if="entry" v-on:back="entry=null"></entry-overview>
     </transition>
+
+    <div v-if="loading" class="loading-overlay"><div class="loader"></div></div>
   </div>
 </template>
 
@@ -106,13 +119,17 @@ export default {
       title: '',
       times: [ ],
       date: null,
+      edit: false,
       entry: null,
       headers: [ ],
       loading: false,
       date_entries: [ ],
+      create_new: false,
       initial_date: null,
       selected_date: null,
       initial_options: null,
+      calendar_container: { classes: { 'calendar-container': true, 'closed': false } },
+      entry_list: { classes: { 'open': false, 'vxc-entries': true } }, 
       classObj: { 'vuex-calendar': true, 'mobile': true },
     }
   },
@@ -414,7 +431,6 @@ export default {
           start = this.entries[ e ].from.clone().hours(0).minutes(0).seconds(0).format('X');
         }
         if(start == day_format) {
-      console.log(this.entries[ e ]);
           entries.push(this.entries[ e ]);
         }
       }
