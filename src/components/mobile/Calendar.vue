@@ -24,7 +24,6 @@
       </table>
     </div>
 
-
     <ul v-bind:class="entry_list.classes"
       draggable="true"
       @dragstart.stop="calendar_container.classes.closed =! calendar_container.classes.closed">
@@ -32,46 +31,24 @@
       <li v-for="(entry, k) in date_entries">
         <entry 
         v-bind:key="k" 
-        v-on:entryClick="entrySelected"
+        v-on:entryClick="onEntryClicked"
         v-bind:entry="entry"></entry>
       </li>
     </ul>
-    <div class="vxc-tools">
-      <div v-if="!entry && !edit">
-        <a href="new" @click.prevent="create_new = true"><i class="fa fa-plus"></i><br>Uusi</a>
-        <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]"><i class="fa fa-calendar"></i><br>Kuukausi</a>
-        <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]"><i class="fa fa-calendar"></i><br>Viikko</a>
-        <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]"><i class="fa fa-clock-o"></i><br>Päivä</a>
-      </div>
-
-      <div v-if="entry">
-        <a href="new" @click.prevent="create_new = true"><i class="fa fa-plus"></i><br>Uusi</a>
-        <a href="edit" @click.prevent="edit = true"><i class="fa fa-pencil"></i><br>Muokkaa</a>
-        <a href="remove" @click.prevent="removeEntry()"><i class="fa fa-trash"></i><br>Poista</a>
-      </div>
-
-    </div>
-
-    <transition name="custom-classes-transition"
-    enter-active-class="animated slideInRight"
-    leave-active-class="animated slideOutRight">
-    <entry-overview v-bind:entry="entry" v-if="entry" v-on:back="entry=null"></entry-overview>
-    </transition>
-
     <div v-if="loading" class="loading-overlay"><div class="loader"></div></div>
   </div>
 </template>
 
 <style lang="scss">
 @import '../../../node_modules/animate.css/animate.min.css';
-@import '../../assets/sass/simple-mobile.scss';
+@import '../../assets/sass/mobile.scss';
 </style>
 <script>
 import entry from './Entry'
 import time_slot from './Slot'
-import entry_overview from './EntryOverview'
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
+import navigation from '../../mixins/NavigationEvents'
 import calendar_helpers from '../../mixins/CalendarHelpers'
 
 var _ = require('lodash');
@@ -80,15 +57,13 @@ var moment = require('moment');
 export default {
 
   components: {
-    'entry': entry,
-    'time-slot': time_slot,
-    'entry-overview': entry_overview
+    'entry': entry, 'time-slot': time_slot,
   },
 
-  mixins: [ helpers, calendar_helpers ],
+  mixins: [ helpers, calendar_helpers, navigation ],
 
   computed: {
-    ...mapGetters([ 'entries', 'time_ranges', 'options', 'normalized_entries' ]),
+    ...mapGetters([ 'entries', 'time_ranges', 'options', 'normalize_entry', 'normalized_entries' ]),
     type() {
       return this.options.type
     }
@@ -96,7 +71,15 @@ export default {
 
   watch: {
     date: function() {
+      console.log('MobileCalendar: Date changed.');
       this.renderCalendar();
+    },
+    times: function() {
+      console.log('MobileCalendar: Times changed.');
+      this.renderEntries();
+    },
+    entries: function() {
+      console.log('MobileCalendar: Entries changed.');
       this.renderEntries();
     },
     type: function() {
@@ -119,8 +102,6 @@ export default {
       title: '',
       times: [ ],
       date: null,
-      edit: false,
-      entry: null,
       headers: [ ],
       loading: false,
       date_entries: [ ],
@@ -153,7 +134,7 @@ export default {
 
   methods: {
 
-    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'refreshEntries' ]),
+    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'removeEntriesByGuids' ]),
 
     _createTimes() {
 
@@ -345,67 +326,6 @@ export default {
     daySelected(date) {
       this.date = date.start;
     },
-    entrySelected(entry) {
-      this.entry = entry;
-    },
-
-    prev() {
-      this.loading = true;
-      var el = document.getElementById('prev');
-      el.className += ' pulse';
-      if(this._isMonth()) {
-        this.date.subtract(1, 'months').clone();
-      } else if(this._isWeek()) {
-        this.date.subtract(7, 'days').clone();
-      } else if(this._isDay()) {
-        this.date.subtract(1, 'days').clone();
-      }
-
-      this.options.selected_date = this._longFormat(this.date);
-      this.times = this._createTimes();
- 
-      if(this.options.type == 'month') {
-        let calendar_dates = this._createMonth();
-        this.setTimeRanges(calendar_dates);
-      } else {
-        let calendar_dates = this._createWeek();
-        this.setTimeRanges(calendar_dates);
-      }
-      this.setSelectedDate(this.date);
-      this.renderCalendar();
-      this.loading = false;
-      setTimeout(function() {
-        el.className = el.className.replace(' pulse');
-      }, 1000);
-    },
-
-    next(e) {
-      this.loading = true;
-      var el = document.getElementById('next');
-      el.className += ' pulse';
-      if(this._isMonth()) {
-        this.date.add(1, 'months').clone()
-      } else if(this._isWeek()) {
-        this.date.add(7, 'days').clone()
-      } else if(this._isDay()) {
-        this.date.add(1, 'days').clone();
-      }
-      this.options.selected_date = this._longFormat(this.date);
-      this.times = this._createTimes();
-      if(this._isMonth()) {
-        let calendar_dates = this._createMonth();
-        this.setTimeRanges(calendar_dates);
-      } else {
-        let calendar_dates = this._createWeek();
-        this.setTimeRanges(calendar_dates);
-      }
-      this.setSelectedDate(this.date);
-      this.renderCalendar();
-      this.loading = false;
-      setTimeout(function() {
-        el.className = el.className.replace(' pulse');
-      }, 1000);
-    },
 
 /*** HELPERS ***/
     renderCalendar() {
@@ -521,9 +441,13 @@ export default {
       return headers;
     },
 
-    rangeSelect(start, end) {
-      this.$emit('onRangeselect', start, end);
-    },
+    onEntryClicked(entry, target) {
+      if(typeof(this.options.onEntryClick) == 'function') {
+        this.options.onEntryClick(this.normalize_entry(entry), target, entry);
+      } else {
+        console.log('VuexCalendar: onEntryClick callback is not a function.');
+      }
+    }
 
   } // Methods
 }

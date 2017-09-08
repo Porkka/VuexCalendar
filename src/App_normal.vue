@@ -1,6 +1,7 @@
 <template>
   <div>
     <component :is="calendar"></component>
+    <!-- Normal save -->
     <div class="modal" v-bind:class="modal.class_obj">
       <div class="modal-background"></div>
       <div class="modal-card">
@@ -16,14 +17,12 @@
                 <li v-for="error in form.errors" v-text="error"></li>
               </ul>
             </div>
-
             <label for="">Name</label>
             <input type="text" name="to" id="vxc-entry-name" v-model="form.entry.name">
             <label for="">From</label>
             <input type="text" name="from" id="vxc-entry-from" v-model="form.entry.from">
             <label for="">To</label>
             <input type="text" name="to" id="vxc-entry-to" v-model="form.entry.to">
-
           </form>
         </section>
         <footer class="modal-card-foot">
@@ -58,7 +57,7 @@ export default {
 
   data() {
     return {
-      calendar: 'mobile',
+      calendar: 'normal',
 
       form: {
         errors: [ ],
@@ -116,41 +115,41 @@ export default {
           date: 'L',
           time: 'HH:mm'
         },
-        // breakpoints: { 767: { type: 'week' }, 640: { type: 'day' } },
-        // events: { move: true, select: true, resize: true },
+        breakpoints: { 767: { type: 'week' }, 640: { type: 'day' } },
+        events: { move: true, select: true, resize: true },
         property_names: {
           en: { day: 'Day', week: 'Week', month: 'Month' },
           fi: { day: 'Päivä', week: 'Viikko', month: 'Kuukausi' },
         },
-        // onRangeSelect: (start, end) => {
-        //   this.modal.class_obj['is-active'] = true;
-        //   this.modal.title = 'Create new Entry';
+        onRangeSelect: (start, end) => {
+          this.modal.class_obj['is-active'] = true;
+          this.modal.title = 'Create new Entry';
 
-        //   this.form.entry.name = '';
-        //   this.form.entry.from = start.start.format('L HH:mm');
-        //   this.form.entry.to = end.end.format('L HH:mm');
+          this.form.entry.name = '';
+          this.form.entry.from = start.start.format('L HH:mm');
+          this.form.entry.to = end.end.format('L HH:mm');
 
-        //   setTimeout(function( ) {
-        //     document.getElementById('vxc-entry-name').focus();
-        //   }, 400);
+          setTimeout(function( ) {
+            document.getElementById('vxc-entry-name').focus();
+          }, 400);
 
-        // },
-        // onEntryMove: (entry) => {
-        //   let result = confirm('Are you sure you want to update this entry?');
-        //   if(result) {
-        //     // ... http request
-        //     console.log('Updating entry with guid ', entry.guid, ' in database.');
-        //   }
-        //   return result;
-        // },
-        // onEntryResize: (entry) => {
-        //   let result = confirm('Are you sure you want to update this entry?');
-        //   if(result) {
-        //     // ... http request
-        //     console.log('Updating entry with guid ', entry.guid, ' in database.');
-        //   }
-        //   return result;
-        // },
+        },
+        onEntryMove: (entry) => {
+          let result = confirm('Are you sure you want to update this entry?');
+          if(result) {
+            // ... http request
+            console.log('Updating entry with guid ', entry.guid, ' in database.');
+          }
+          return result;
+        },
+        onEntryResize: (entry) => {
+          let result = confirm('Are you sure you want to update this entry?');
+          if(result) {
+            // ... http request
+            console.log('Updating entry with guid ', entry.guid, ' in database.');
+          }
+          return result;
+        },
         onEntryClick: (entry, node) => {
           var self = this;
 

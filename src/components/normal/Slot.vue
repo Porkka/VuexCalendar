@@ -203,7 +203,7 @@ export default {
 
     onEntryClicked(entry, node) {
       if(typeof(this.options.onEntryClick) == 'function') {
-        this.options.onEntryClick(this.normalize_entry(entry), node);
+        this.options.onEntryClick(this.normalize_entry(entry), node, entry);
       } else {
         console.log('VuexCalendar: onEntryClick callback is not a function.');
       }
@@ -216,8 +216,6 @@ export default {
       } else if(!this.drag_event_entry || !this.drag_event_origin_date || !this.drag_event_on_date) {
         return;
       }
-
-      console.log('Tsajajaa');
 
       var entry = _.cloneDeep(this.drag_event_entry),
       old_start = entry.origin_from,

@@ -2,8 +2,63 @@ $primary-color: #9867DC;
 $secondary-color: #F99C40;
 $grey-color: #F7F7F7;
 
+$main-width: 320px;
+
 $primary-text-color: #636363;
 $secondary-text-color: #FFFFFF;
+
+#calendar-container {
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
+  width: $main-width;
+}
+
+.heading {
+  padding: 5px 0;
+  font-size: 16px;
+  text-align: center;
+  color: $secondary-text-color;
+  background-color: $primary-color;
+  a {
+    color: $secondary-text-color !important;
+  }
+}
+
+.vxc-tools {
+  z-index: 10;
+  position: fixed;
+  width: $main-width;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  background-color: $primary-color;
+  div {
+    display: flex;
+    a {
+      flex-grow: 1;
+      padding: 5px;
+      color: #FFFFFF;
+      text-align: center;
+    }
+    a.active {
+      background-color: darken($primary-color, 20%);
+    }
+  }
+}
+
+.vxc-entry-overview {
+  width: 100%;
+  height: 100%;
+  top: 0; left: 0;
+  position: absolute;
+  background-color: #FFFFFF;
+  .overview {
+    .section {
+      padding: 8px 10px;
+      border-bottom: 1px solid #DEDEDE;
+    }
+  }
+}
 
 .vuex-calendar.mobile {
 
@@ -17,18 +72,6 @@ $secondary-text-color: #FFFFFF;
 
   a {
     color: $primary-text-color;
-  }
-
-  .heading {
-    margin: 0;
-    padding: 5px 0;
-    font-size: 16px;
-    text-align: center;
-    color: $secondary-text-color;
-    background-color: $primary-color;
-    a {
-      color: $secondary-text-color;
-    }
   }
 
   .calendar-container {
@@ -114,43 +157,6 @@ $secondary-text-color: #FFFFFF;
 
   }
 
-  .vxc-tools {
-    width: 100%;
-    z-index: 10;
-    position: fixed;
-    bottom: 0; left: 0;
-    background-color: $primary-color;
-    div {
-      display: flex;
-      a {
-        flex-grow: 1;
-        padding: 5px;
-        color: #FFFFFF;
-        text-align: center;
-      }
-      a.active {
-        background-color: darken($primary-color, 20%);
-      }
-    }
-  }
-
-  .vxc-entry-overview {
-    width: 100%;
-    height: 100%;
-    top: 0; left: 0;
-    position: absolute;
-    background-color: #FFFFFF;
-
-    .overview {
-      .section {
-        padding: 8px 10px;
-        border-bottom: 1px solid #DEDEDE;
-      }
-
-    }
-
-  }
-
   .vxc-nav {
     width: 40px;
     height: 40px;
@@ -163,10 +169,8 @@ $secondary-text-color: #FFFFFF;
     outline: 0 !important;
     justify-content: center;
 
-    &.prev {
-    }
-    &.next {
-    }
+    &.prev { }
+    &.next { }
 
   }
 
