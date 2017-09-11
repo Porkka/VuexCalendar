@@ -78,4 +78,12 @@ export default {
 		commit('RESET_EVENTS')
 	},
 
+	_setEntryModifier: ({ commit }, mod_method) => {
+		if(typeof(mod_method) == 'function') {
+			commit('_SET_ENTRY_MODIFIER_METHOD', mod_method);
+		} else {
+			console.log('Entry modifier must be an method, that takes entry array as a parameter and returns modification of them.');
+		}
+	}
+
 }

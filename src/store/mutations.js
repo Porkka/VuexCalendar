@@ -51,7 +51,11 @@ export default {
     var new_entries = _createEntryObjects(entries);
     new_entries = new_entries.concat(state.entries);
     new_entries = _sortEntries(new_entries);
-    state.entries = _checkOffsets(new_entries);
+    if(typeof(state._entry_mod) == 'function') {
+      state.entries = state._entry_mod(new_entries);
+    } else {
+      state.entries = new_entries;
+    }
   },
 
   UPDATE_ENTRIES (state, entries) {
@@ -65,7 +69,11 @@ export default {
     var updated_entries = _createEntryObjects(entries, true);
     updated_entries = new_entries.concat(updated_entries);
     updated_entries = _sortEntries(updated_entries);
-    state.entries = _checkOffsets(updated_entries);
+    if(typeof(state._entry_mod) == 'function') {
+      state.entries = state._entry_mod(updated_entries);
+    } else {
+      state.entries = updated_entries;
+    }
   },
 
   REMOVE_ENTRIES_BY_GUIDS (state, guids) {
@@ -82,13 +90,22 @@ export default {
       }
     }
     new_entries = _sortEntries(new_entries);
-    state.entries = _checkOffsets(new_entries);
+    if(typeof(state._entry_mod) == 'function') {
+      state.entries = state._entry_mod(new_entries);
+    } else {
+      state.entries = new_entries;
+    }
   },
 
 	STORE_ENTRIES (state, entries) {
 		var ent = _createEntryObjects(entries);
     ent = _sortEntries(ent);
-    state.entries = _checkOffsets(ent);
+    if(typeof(state._entry_mod) == 'function') {
+      state.entries = state._entry_mod(ent);
+      console.log();
+    } else {
+      state.entries = ent;
+    }
 	},
 
   BACKUP_ENTRY (state, entry) {
@@ -107,7 +124,11 @@ export default {
       var updated_entries = _createEntryObjects(state.backup_entries, true);
       updated_entries = new_entries.concat(updated_entries);
       updated_entries = _sortEntries(updated_entries);
-      state.entries = _checkOffsets(updated_entries);
+      if(typeof(state._entry_mod) == 'function') {
+        state.entries = state._entry_mod(updated_entries);
+      } else {
+        state.entries = updated_entries;
+      }
     }
     state.backup_entries = [ ];
   },
@@ -164,6 +185,11 @@ export default {
       on_date: null,
       origin_date: null
     }
+  },
+
+  _SET_ENTRY_MODIFIER_METHOD(state, method) {
+    state._entry_mod = method;
+    state.entries = state._entry_mod(state.entries);
   }
 
 }
@@ -350,86 +376,11 @@ function _rangeToDays(start, end) {
   }
     return days;
 }
-function _getOverlappingEntries(entry, entry_objects) {
-  var clone = _.cloneDeep(entry);
-  if(_isMonth()) {
-    clone.from.hours(0).minutes(0).seconds(0);
-    clone.to.hours(23).minutes(59).seconds(59);
-  }
-
-  var entries = entry_objects.filter(function(item) {
-    if(item.guid != clone.guid) { // Skip if entry itself
-      if(_isMonth()) {
-        var start = item.from.clone().hours(0).minutes(0).seconds(0);
-        var end = item.to.clone().hours(0).minutes(0).seconds(0);
-      } else {
-        var start = item.from;
-        var end = item.to;
-      }
-      var istart = parseInt(start.format('X')), iend = parseInt(end.format('X')),
-      estart = parseInt(clone.from.format('X')), eend = parseInt(clone.to.format('X'));
-      return (
-        // Check if overlapping in any way
-        ( istart >= estart && iend <= eend ) || // [ --- ]
-        ( istart <= estart && iend > estart) || // -[ -- ]
-        ( istart <= estart && iend >= eend ) || // --[ --- ]--
-        ( istart <= eend && iend >= eend ) || // [ -- ]-
-        ( (istart == eend || iend == estart ) && _isMonth() ) // [ -- ]-
-      );
-    }
-  });
-  return entries;
-}
 function _sortEntries(entries) {
   var a = function(o) { return parseInt(o.from.format('X')); };
   var b = function(o) { return parseInt( o.to.format('X') - o.from.format('X') ); }
   entries = _.sortBy(entries, [ a, b ], [ 'desc' ]);
   return entries;
-}
-function _checkOffsets(entries) {
-  var all_entries = [ ];
-  var available_slots = _.range(0, (state.options.entry_limit - 1));
-  for(let ent in entries) {
-    entries[ent].slot = 0;
-    entries[ent].overflow = false;
-
-    var overlaps = _getOverlappingEntries(entries[ ent ], all_entries);
-    // Check in which slot the overlapping etries occupy
-    if(overlaps.length) {
-      entries[ent].slot = overlaps.length;
-      var filled_slots = _.map(overlaps, 'slot');
-      for(let a in available_slots) {
-        if(filled_slots.indexOf(available_slots[a]) == -1) {
-          entries[ent].slot = available_slots[a]; 
-          break;
-        }
-      }
-      if((entries[ent].slot + 1) > state.options.entry_limit) {
-        entries[ent].overflow = true;
-      }
-    }
-
-    if(_isMonth()) {
-      var styles = _.cloneDeep(entries[ ent ].styles);
-      styles.top = (entries[ ent ].slot * parseInt(entries[ ent ].styles.height)) + (4 * entries[ ent ].slot) + 25 + 'px';
-      entries[ ent ].styles = styles;
-      entries[ ent ].styles = _.omit(entries[ ent ].styles, 'left');
-    } else {
-
-      var width = 100;
-      if(entries[ ent ].slot) {
-        width = 100 / (entries[ ent ].slot + 0.5);
-      }
-      entries[ ent ].styles.left = 10 + ( ( width/ 2 ) * entries[ ent ].slot) + 'px';
-      entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
-      entries[ ent ].styles = _.omit(entries[ ent ].styles, 'top');
-      for(let e in overlaps) {
-        overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
-      }
-    }
-    all_entries.push(entries[ ent ]);
-  }
-  return all_entries;
 }
 function _initEntryObject(ent, leave_initial_guid) {
   let entry = _.cloneDeep(ent);

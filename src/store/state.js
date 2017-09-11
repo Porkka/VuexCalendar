@@ -44,22 +44,12 @@ export default {
     },
   },
 
-  entries: [
+  entries: [ ],
+  // active_entries: [ ],
+  active_days: [ ],
+  // target_day: null,
+  backup_entries: [ ],
 
-  ],
-
-  active_entries: [
-
-  ],
-
-  active_days: [
-	   
-  ],
-
-  target_day: null,
-
-  backup_entries: [
-
-  ],
+  _entry_mod: null,
 
 }

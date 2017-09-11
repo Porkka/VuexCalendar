@@ -97,6 +97,8 @@ export default {
 
   created() {
 
+    this._setEntryModifier(this._checkOffsets);
+
     this.classObj[this.options.type] = true;
     if(this.options.theme) {
       this.classObj[this.options.theme] = true;
@@ -116,7 +118,7 @@ export default {
 
   methods: {
 
-    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'refreshEntries' ]),
+    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'refreshEntries', '_setEntryModifier' ]),
 
     handleResize() {
       var self = this;
@@ -482,17 +484,52 @@ export default {
       }
     },
 
-    calendarHeaders(moment) {
-      if(this._isMonth()) {
-        var headers = this.monthHeader(moment);
-      } else if(this._isWeek()) {
-        var headers = this.weekHeader(moment);
-      }
-      return headers;
-    },
-
     rangeSelect(start, end) {
       this.$emit('onRangeselect', start, end);
+    },
+
+    _checkOffsets(entries) {
+      var all_entries = [ ];
+      var available_slots = _.range(0, (this.options.entry_limit - 1));
+      for(let ent in entries) {
+        entries[ent].slot = 0;
+        entries[ent].overflow = false;
+
+        var overlaps = this._getOverlappingEntries(entries[ ent ], all_entries);
+        // Check in which slot the overlapping etries occupy
+        if(overlaps.length) {
+          entries[ent].slot = overlaps.length;
+          var filled_slots = _.map(overlaps, 'slot');
+          for(let a in available_slots) {
+            if(filled_slots.indexOf(available_slots[a]) == -1) {
+              entries[ent].slot = available_slots[a]; 
+              break;
+            }
+          }
+          if((entries[ent].slot + 1) > this.options.entry_limit) {
+            entries[ent].overflow = true;
+          }
+        }
+        if(this._isMonth()) {
+          var styles = _.cloneDeep(entries[ ent ].styles);
+          styles.top = (entries[ ent ].slot * parseInt(entries[ ent ].styles.height)) + (4 * entries[ ent ].slot) + 25 + 'px';
+          entries[ ent ].styles = styles;
+          entries[ ent ].styles = _.omit(entries[ ent ].styles, 'left');
+        } else {
+          var width = 100;
+          if(entries[ ent ].slot) {
+            width = 100 / (entries[ ent ].slot + 0.5);
+          }
+          entries[ ent ].styles.left = 10 + ( ( width/ 2 ) * entries[ ent ].slot) + 'px';
+          entries[ ent ].styles.width = 'calc(' + width + '% - 20px)';
+          entries[ ent ].styles = _.omit(entries[ ent ].styles, 'top');
+          for(let e in overlaps) {
+            overlaps[ e ].styles.width = 'calc(' + width + '% - 20px)';
+          }
+        }
+        all_entries.push(entries[ ent ]);
+      }
+      return all_entries;
     },
 
   } // Methods

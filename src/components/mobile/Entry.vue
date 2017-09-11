@@ -3,7 +3,7 @@
 		@click.stop.prevent="onClick"
 		v-bind:data-uid="entry.uid"
 		v-bind:style="entry.styles">
-		<span class="start">{{ entry.from.format('HH:mm') }}</span>  {{ entry.text }}
+		<span class="start" v-if="_isMonth()">{{ entry.from.format('HH:mm') }}</span>  {{ entry.text }}
 	</div>
 </template>
 <script>

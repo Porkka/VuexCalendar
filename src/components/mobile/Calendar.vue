@@ -1,7 +1,6 @@
 <template>
   <div v-bind:class="classObj">
 
-
     <div class="heading">
       <a href="#" class="vxc-nav prev" id="prev" v-html="this.options.prev_nav" @click.prevent="prev"></a>
       <span class="vxc-title" v-html="this.title"></span>
@@ -26,8 +25,9 @@
 
     <ul v-bind:class="entry_list.classes"
       draggable="true"
+      v-if="_isMonth()"
       @dragstart.stop="calendar_container.classes.closed =! calendar_container.classes.closed">
-      <li class="vxc-selected-date">{{ date.format('L') }}</li>
+      <li class="vxc-selected-date">{{ _isMonth() ? date.format('L') : date.format('L HH:mm') }}</li>
       <li v-for="(entry, k) in date_entries">
         <entry 
         v-bind:key="k" 
@@ -71,15 +71,12 @@ export default {
 
   watch: {
     date: function() {
-      console.log('MobileCalendar: Date changed.');
       this.renderCalendar();
     },
     times: function() {
-      console.log('MobileCalendar: Times changed.');
       this.renderEntries();
     },
     entries: function() {
-      console.log('MobileCalendar: Entries changed.');
       this.renderEntries();
     },
     type: function() {
@@ -117,6 +114,8 @@ export default {
 
   created() {
 
+    this._setEntryModifier(this._checkOffsets);
+
     this.classObj[this.options.type] = true;
     if(this.options.theme) {
       this.classObj[this.options.theme] = true;
@@ -134,7 +133,7 @@ export default {
 
   methods: {
 
-    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'removeEntriesByGuids' ]),
+    ...mapActions([ 'setSelectedDate', 'setOptions',  'setTimeRanges', 'setEntries', 'removeEntriesByGuids', '_setEntryModifier' ]),
 
     _createTimes() {
 
@@ -243,7 +242,7 @@ export default {
     _createWeek() {
 
       var clone = this.date.clone();
-      var date_now = clone.format('l'),
+      var date_now = clone.format('l HH:mm'),
         week = { ranges: [ ] },
         stamp_now = clone.format('X'),
         month_no_now = clone.format('M'),
@@ -296,7 +295,6 @@ export default {
           tmp.hours(this.times[t].hours()).minutes(this.times[t].minutes()).seconds(this.times[t].seconds());
           tmp_end = tmp.clone();
           tmp_end.add(length, 'seconds');
-          // console.log(tmp.format('L, HH:mm') + ' - ' + tmp_end.format('L, HH:mm'))
           // Add data attributes for easier manipulation
           let time = {
             start: tmp,
@@ -313,6 +311,10 @@ export default {
             },
           };
 
+          if(tmp.format('l HH:mm') == date_now) {
+            time.classes.selected = true;
+          }
+
           day.times.push(time);
         }
 
@@ -325,6 +327,7 @@ export default {
 
     daySelected(date) {
       this.date = date.start;
+      this.options.selected_date = date.start;
     },
 
 /*** HELPERS ***/
@@ -344,7 +347,11 @@ export default {
     renderEntries() {
 
       let entries = [ ];
-      var day_format = this.date.format('X');
+      var d = this.date.clone();
+      if(this._isMonth()) {
+        d.hours(0).minutes(0).seconds(0);
+      }
+      var day_format = d.format('X');
       for(let e in this.entries) {
         let start = this.entries[ e ].from.clone().format('X');
         if(this._isMonth()) {
@@ -393,7 +400,7 @@ export default {
       var range = startWeek.format(this.options.format.date) + ' - ' + endWeek.format(this.options.format.date);
       while(startWeek.format('d') != endWeek.format('d')) {
         var cell = {
-          text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date),
+          text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format('DD'),
           classes: {
             today: (startWeek.format('l') == date_now_str)
           }
@@ -402,7 +409,7 @@ export default {
         // Append to table headers
         headers.push(cell);
       }
-      var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format(this.options.format.date) };
+      var cell = { text: startWeek.format('dddd').substr(0, 2) +'<br>'+ startWeek.format('DD') };
       startWeek.add(1, 'days');
       // Append to table headers
       headers.push(cell);
@@ -432,22 +439,52 @@ export default {
       }
     },
 
-    calendarHeaders(moment) {
-      if(this._isMonth()) {
-        var headers = this.monthHeader(moment);
-      } else if(this._isWeek()) {
-        var headers = this.weekHeader(moment);
-      }
-      return headers;
-    },
-
     onEntryClicked(entry, target) {
       if(typeof(this.options.onEntryClick) == 'function') {
         this.options.onEntryClick(this.normalize_entry(entry), target, entry);
       } else {
         console.log('VuexCalendar: onEntryClick callback is not a function.');
       }
-    }
+    },
+
+    _checkOffsets(entries) {
+      if(this._isMonth()) {
+        return entries;
+      }
+      var all_entries = [ ];
+      var available_slots = _.range(0, (this.options.entry_limit - 1));
+      for(let ent in entries) {
+        entries[ent].slot = 0;
+        entries[ent].overflow = false;
+
+        var overlaps = this._getOverlappingEntries(entries[ ent ], all_entries);
+        // Check in which slot the overlapping etries occupy
+        if(overlaps.length) {
+          entries[ent].slot = overlaps.length;
+          var filled_slots = _.map(overlaps, 'slot');
+          for(let a in available_slots) {
+            if(filled_slots.indexOf(available_slots[a]) == -1) {
+              entries[ent].slot = available_slots[a]; 
+              break;
+            }
+          }
+          if((entries[ent].slot + 1) > this.options.entry_limit) {
+            entries[ent].overflow = true;
+          }
+        }
+        var width = 100;
+        if(entries[ ent ].slot) {
+          width = 100 / (entries[ ent ].slot + 0.5);
+        }
+        entries[ ent ].styles.left = ( width * entries[ ent ].slot ) + '%';
+        entries[ ent ].styles.width = 'calc(' + width + '%)';
+        for(let e in overlaps) {
+          overlaps[ e ].styles.width = 'calc(' + width + '%)';
+        }
+        all_entries.push(entries[ ent ]);
+      }
+      return all_entries;
+    },
 
   } // Methods
 }

@@ -8,9 +8,17 @@
   <span class="day-number" v-if="_isMonth()">{{day.text}}
     <span class="entry-indicator" v-if="day_entries.length > 0"></span>
   </span>
+
+  <entry v-for="(entry, k) in day_entries" 
+  v-if="!entry.overflow && !_isMonth()"
+  v-bind:key="k" 
+  v-on:entryClick="onEntryClicked"
+  v-bind:entry="entry"></entry>
+
 </td>
 </template>
 <script>
+import entry from './Entry'
 import { mapGetters, mapActions } from 'vuex'
 import helpers from '../../mixins/GeneralHelpers'
 import calendar_helpers from '../../mixins/CalendarHelpers'
@@ -19,6 +27,8 @@ var _ = require('lodash');
 export default {
 
   mixins: [ helpers, calendar_helpers ],
+
+  components: { entry },
 
   computed: {
     ...mapGetters([
