@@ -246,9 +246,12 @@ $secondary-text-color: #FFFFFF;
     display: none;
   } /*** === /MONTH === ***/
 
+  /*** ===  DAY === ***/
+  &.day, &.week {
 
-  /*** ===  WEEK === ***/
-  &.week {
+    .heading {
+      margin: 0;
+    }
 
     .calendar-container {
       height: 100%;
@@ -279,8 +282,7 @@ $secondary-text-color: #FFFFFF;
         td  {
           padding: 0;
           height: 40px;
-          width: 13.22%;
-          overflow-x: hidden;
+          overflow: hidden;
           border-left: 1px solid #EAEAEA;
           border-bottom: 1px solid #EAEAEA;
 
@@ -325,56 +327,16 @@ $secondary-text-color: #FFFFFF;
         }
 
       }
-
     }
+  } /*** === /DAY === ***/
 
-    .vxc-resizer {
-      left: 50%;
-      margin: 0;
-      bottom: 0;
-      width: 90%;
-      z-index: 10;
-      float: none;
-      height: 12px;
-      display: block;
-      cursor: s-resize;
-      position: absolute;
-      background-color: transparent;
-      transform: translate(-50%, -30%);
-      user-select: none;
+  /*** ===  WEEK === ***/
+  &.week {
+    td  {
+      width: 13.22%;
     }
-
   } /*** === /WEEK === ***/
 
-  /*** ===  DAY === ***/
-  &.day {
-
-    table tr td  {
-      padding: 0;
-      width: 94%;
-      height: 40px;
-    
-      &:first-child {
-        width: 50px;
-        text-align: center;
-      }
-
-      .entry {
-        top: 5px;
-        border-radius: 5px;
-      }
-
-      .vxc-reziser {
-        width: 99%;
-        bottom: 5px;
-        height: 20px;
-        cursor: s-resize;
-        position: absolute;
-      }
-
-    }
-
-  } /*** === /DAY === ***/
 
 }
 
