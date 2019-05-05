@@ -11,14 +11,14 @@
       <table class="vxc-main-table">
         <tr class="heading-row day-name-row" v-if="!_isDay()">
           <th class="entry-row" v-if="!_isMonth()"></th>
-          <th v-for="header in headers" v-bind:class="[header.classes, 'day-title']" v-html="header.text" v-if="!_isDay()"></th>
+          <th v-for="(header, h) in headers" :key="h + 'head'" v-bind:class="[header.classes, 'day-title']" v-html="header.text" v-if="!_isDay()"></th>
         </tr>
-        <tr v-if="_isMonth()" class="entry-row" v-for="(week, k) in time_ranges">
-          <time-slot v-for="day in week.ranges" v-bind:day="day" v-bind:key="k" v-on:daySelected="daySelected"></time-slot>
+        <tr v-if="_isMonth()" class="entry-row" v-for="(week, i) in time_ranges" v-bind:key="i + 'day-container'">
+          <time-slot v-for="(day, k) in week.ranges" v-bind:day="day" :key="k + 'day'" v-on:daySelected="daySelected"></time-slot>
         </tr>
-        <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times">
+        <tr class="entry-row" v-if="!_isMonth()" v-for="(time, l) in time_ranges[0].ranges[0].times" v-bind:key="l">
           <td v-text="time.text"></td>
-          <time-slot v-for="(range, k) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="l" v-on:daySelected="daySelected"></time-slot>
+          <time-slot v-for="(range, j) in time_ranges[0].ranges" v-bind:day="range.times[ l ]" v-bind:key="j" v-on:daySelected="daySelected"></time-slot>
         </tr>
       </table>
     </div>
@@ -28,7 +28,7 @@
       v-if="_isMonth()"
       @dragstart.stop="calendar_container.classes.closed =! calendar_container.classes.closed">
       <li class="vxc-selected-date">{{ _isMonth() ? date.format('L') : date.format('L HH:mm') }}</li>
-      <li v-for="(entry, k) in date_entries">
+      <li v-for="(entry, k) in date_entries" :key="k">
         <entry 
         v-bind:key="k" 
         v-on:entryClick="onEntryClicked"

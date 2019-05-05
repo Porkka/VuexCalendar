@@ -20,7 +20,11 @@ export default {
 
 	computed: {
     ...mapGetters([
-      'drag_event_entry', 'drag_on_date', 'options', 'originEntry', 'normalize_entry'
+			'options',
+			'originEntry',
+			'drag_on_date',
+			'normalize_entry',
+			'drag_event_entry',
     ])
 	},
 

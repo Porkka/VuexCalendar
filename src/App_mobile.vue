@@ -1,6 +1,7 @@
 <template>
   <div>
     <component :is="calendar"></component>
+
     <transition name="custom-classes-transition"
     enter-active-class="animated slideInRight"
     leave-active-class="animated slideOutRight">
@@ -9,43 +10,42 @@
     v-if="entry"
     v-on:back="editing=entry=null"></entry-overview>
     </transition>
-
-    <div class="vxc-tools">
-      <!-- Initial stage -->
-      <div v-if="!entry && !editing">
-        <a href="new" @click.prevent="onEntryNewClick"><div><i class="fa fa-plus icon"></i>Uusi</div></a>
-        <a href="month" @click.prevent="options.type = 'month'" v-bind:class="[ options.type == 'month' ? 'active' : '' ]"><div><i class="fa fa-calendar icon"></i>Kuukausi</div></a>
-        <a href="week" @click.prevent="options.type = 'week'" v-bind:class="[ options.type == 'week' ? 'active' : '' ]"><div><i class="fa fa-calendar icon"></i>Viikko</div></a>
-        <a href="day" @click.prevent="options.type = 'day'" v-bind:class="[ options.type == 'day' ? 'active' : '' ]"><div><i class="fa fa-clock-o icon"></i>Päivä</div></a>
-      </div>
+    <bottom-nav>
+      <default-toolset :tools="tools"></default-toolset>
       <!-- Overview -->
       <div v-if="entry && !editing">
-        <a href="new" @click.prevent="onEntryNewClick"><div><i class="fa fa-plus icon"></i>Uusi</div></a>
-        <a href="edit" @click.prevent="onEntryEditClick"><div><i class="fa fa-pencil icon"></i>Muokkaa</div></a>
-        <a href="remove" @click.prevent="onEntryRemoveClick"><div><i class="fa fa-trash icon"></i>Poista</div></a>
+          <a href="new" @click.prevent="onEntryNewClick"><div><i class="fa fa-plus icon"></i>Uusi</div></a>
+          <a href="edit" @click.prevent="onEntryEditClick"><div><i class="fa fa-pencil icon"></i>Muokkaa</div></a>
+          <a href="remove" @click.prevent="onEntryRemoveClick"><div><i class="fa fa-trash icon"></i>Poista</div></a>
       </div>
       <!-- Saving entry (New / Edit) -->
       <div v-if="entry && editing">
-        <a href="back" @click.prevent="editing=entry=null"><div><i class="fa fa-times icon"></i>Peruuta</div></a>
-        <a href="save" @click.prevent="onEntrySaved"><div><i class="fa fa-floppy-o icon"></i>Tallenna</div></a>
+          <a href="back" @click.prevent="editing=entry=null"><div><i class="fa fa-times icon"></i>Peruuta</div></a>
+          <a href="save" @click.prevent="onEntrySaved"><div><i class="fa fa-floppy-o icon"></i>Tallenna</div></a>
       </div>
-    </div>
+    </bottom-nav>
   </div>
 </template>
-<style lang="scss">
-@import './assets/sass/dot-trail.scss';
-</style>
 <script>
 var _ = require('lodash');
 var moment = require('moment');
 import { mapActions, mapGetters } from 'vuex'
-import entry_overview from './components/mobile/EntryOverview'
-import normal from './components/normal/Calendar'
-import mobile from './components/mobile/Calendar'
+import Normal from './components/normal/Calendar'
+import Mobile from './components/mobile/Calendar'
+import EntryOverview from './components/mobile/EntryOverview'
+// Mobile components
+import BottomNav from './components/mobile/toolbar/Container'
+import DefaultToolset from './components/mobile/toolbar/toolsets/Default'
 
 export default {
 
-  components: { 'normal': normal, 'mobile': mobile, 'entry-overview': entry_overview },
+  components: {
+    Normal,
+    Mobile,
+    BottomNav,
+    EntryOverview,
+    DefaultToolset
+  },
  
   computed: {
     ...mapGetters([ 'entries', 'options' ]),
@@ -59,6 +59,41 @@ export default {
       entry: null,
       editing: false,
       calendar: 'mobile',
+
+      tools: [
+        {
+          id: 'new',
+          icon: 'fa fa-plus',
+          text: 'Uusi',
+          callback: () => {
+            console.log('dfsfds');
+          }
+        },
+        {
+          id: 'month',
+          icon: 'fa fa-calendar',
+          text: 'Kuukausi',
+          callback: () => {
+            console.log('dfsfds');
+          }
+        },
+        {
+          id: 'week',
+          icon: 'fa fa-calendar',
+          text: 'Viikko',
+          callback: () => {
+            console.log('dfsfds');
+          }
+        },
+        {
+          id: 'day',
+          icon: 'fa fa-clock-o',
+          text: 'Päivä',
+          callback: () => {
+            console.log('dfsfds');
+          }
+        },
+      ],
 
       form: {
         errors: [ ],

@@ -14,7 +14,7 @@
             <div class="notification is-danger" v-if="form.errors.length">
               <button class="delete" @click="form.errors = []"></button>
               <ul>
-                <li v-for="error in form.errors" v-text="error"></li>
+                <li v-for="(error, index) in form.errors" :key="index" v-text="error"></li>
               </ul>
             </div>
             <label for="">Name</label>
@@ -53,7 +53,7 @@ onRangeSelect
 ****/
 export default {
 
-  components: { normal: normal, mobile: mobile },
+  components: { normal, mobile },
 
   data() {
     return {

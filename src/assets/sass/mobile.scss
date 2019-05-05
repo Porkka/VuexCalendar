@@ -1,11 +1,4 @@
-$primary-color: #9867DC;
-$secondary-color: #F99C40;
-$grey-color: #F7F7F7;
-
-$main-width: 320px;
-
-$primary-text-color: #636363;
-$secondary-text-color: #FFFFFF;
+@import 'variables';
 
 #calendar-container {
   margin: 0 auto;
@@ -35,23 +28,6 @@ $secondary-text-color: #FFFFFF;
   bottom: 0; left: 50%;
   transform: translateX(-50%);
   background-color: $primary-color;
-  &>div {
-    display: flex;
-    a {
-      flex-grow: 1;
-      padding: 5px;
-      line-height: 1;
-      color: #FFFFFF;
-      text-align: center;
-      .icon {
-        margin: 0 auto;
-        display: block;
-      }
-    }
-    a.active {
-      background-color: darken($primary-color, 20%);
-    }
-  }
 }
 
 .vxc-entry-overview {

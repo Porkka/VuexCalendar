@@ -1,7 +1,11 @@
 {
   "presets": [
-    ["env", { "modules": false }]
+    [
+      "@babel/preset-env", { "modules": false }
+    ]
   ],
-  "plugins": ["transform-runtime", "transform-es2015-destructuring","transform-object-rest-spread"],
+  "plugins": [
+    "@babel/transform-runtime"
+  ],
   "comments": false
 }
